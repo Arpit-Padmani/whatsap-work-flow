@@ -1,0 +1,76 @@
+[2025-07-06 11:55:54] Webhook file called. Method: GET
+[2025-07-06 11:55:54] Verification failed or conditions not met.
+[2025-07-06 11:56:46] Webhook file called. Method: GET
+[2025-07-06 11:56:46] Verification successful. hub_challenge returned.
+[2025-07-06 12:29:45] Webhook file called. Method: GET
+[2025-07-06 12:29:45] Verification successful. hub_challenge returned.
+[2025-07-06 12:30:13] Webhook file called. Method: GET
+[2025-07-06 12:30:13] Verification successful. hub_challenge returned.
+[2025-07-06 12:32:14] Webhook file called. Method: POST
+[2025-07-06 12:32:14] Verification failed or conditions not met.
+[2025-07-06 12:32:14] hii
+[2025-07-06 12:32:14] Array
+[2025-07-06 12:33:10] Webhook file called. Method: POST
+[2025-07-06 12:33:10] Verification failed or conditions not met.
+[2025-07-06 12:33:10] what are you ?
+[2025-07-06 12:33:10] Array
+[2025-07-06 16:21:52] Verification failed or conditions not met.
+[2025-07-06 16:21:52] hiii
+[2025-07-06 16:21:52] Array
+[2025-07-06 16:23:22] Verification failed or conditions not met.
+[2025-07-06 16:23:22] hiii
+[2025-07-06 16:27:55] Verification failed or conditions not met.
+[2025-07-06 16:27:55] hiii
+[2025-07-06 16:27:57] sendWhatsAppMessage response: {"error":{"message":"Unsupported post request. Object with ID '597358536789220' does not exist, cannot be loaded due to missing permissions, or does not support this operation. Please read the Graph API documentation at https:\/\/developers.facebook.com\/docs\/graph-api","type":"GraphMethodException","code":100,"error_subcode":33,"fbtrace_id":"Az9fgebSFQ2zt4w39H7lW3k"}}
+[2025-07-06 16:28:09] Verification failed or conditions not met.
+[2025-07-06 16:28:09] hiiii
+[2025-07-06 16:28:10] sendWhatsAppMessage response: {"error":{"message":"Unsupported post request. Object with ID '597358536789220' does not exist, cannot be loaded due to missing permissions, or does not support this operation. Please read the Graph API documentation at https:\/\/developers.facebook.com\/docs\/graph-api","type":"GraphMethodException","code":100,"error_subcode":33,"fbtrace_id":"A1qhq4SjSqy0-O6u9ipe-PZ"}}
+[2025-07-06 16:29:16] Verification failed or conditions not met.
+[2025-07-06 16:29:16] hiii
+[2025-07-06 16:29:18] sendWhatsAppMessage response: {"messaging_product":"whatsapp","contacts":[{"input":"917096305498","wa_id":"917096305498"}],"messages":[{"id":"wamid.HBgMOTE3MDk2MzA1NDk4FQIAERgSNjE0MTM2NjRFQzgxMjhDREJEAA==","message_status":"accepted"}]}
+[2025-07-06 16:29:20] Verification failed or conditions not met.
+[2025-07-06 16:29:20] 
+[2025-07-06 16:29:21] Verification failed or conditions not met.
+[2025-07-06 16:29:21] 
+[2025-07-06 16:29:21] Verification failed or conditions not met.
+[2025-07-06 16:29:21] 
+[2025-07-06 16:29:22] Verification failed or conditions not met.
+[2025-07-06 16:29:22] 
+[2025-07-06 16:30:33] Verification failed or conditions not met.
+[2025-07-06 16:30:33] hello
+[2025-07-06 16:30:35] sendWhatsAppMessage response: {"messaging_product":"whatsapp","contacts":[{"input":"917096305498","wa_id":"917096305498"}],"messages":[{"id":"wamid.HBgMOTE3MDk2MzA1NDk4FQIAERgSNDdERUQ4Q0I2NEI1NTk1QUQyAA==","message_status":"accepted"}]}
+[2025-07-06 16:30:36] sendWhatsAppMessage response: {"messaging_product":"whatsapp","contacts":[{"input":"917096305498","wa_id":"917096305498"}],"messages":[{"id":"wamid.HBgMOTE3MDk2MzA1NDk4FQIAERgSMjZDRDNEMERBNjlEODYyQjg0AA==","message_status":"accepted"}]}
+[2025-07-06 16:30:38] Verification failed or conditions not met.
+[2025-07-06 16:30:38] 
+[2025-07-06 16:30:38] Verification failed or conditions not met.
+[2025-07-06 16:30:38] 
+[2025-07-06 16:30:39] Verification failed or conditions not met.
+[2025-07-06 16:30:39] 
+[2025-07-06 16:30:39] Verification failed or conditions not met.
+[2025-07-06 16:30:39] 
+[2025-07-06 16:30:39] Verification failed or conditions not met.
+[2025-07-06 16:30:39] 
+[2025-07-06 16:30:39] Verification failed or conditions not met.
+[2025-07-06 16:30:39] 
+[2025-07-06 16:30:39] Verification failed or conditions not met.
+[2025-07-06 16:30:39] 
+[2025-07-06 16:30:41] Verification failed or conditions not met.
+[2025-07-06 16:30:41] 
+[2025-07-06 16:30:44] Verification failed or conditions not met.
+[2025-07-06 16:30:44] of course
+[2025-07-06 16:30:45] sendWhatsAppMessage response: {"messaging_product":"whatsapp","contacts":[{"input":"917096305498","wa_id":"917096305498"}],"messages":[{"id":"wamid.HBgMOTE3MDk2MzA1NDk4FQIAERgSNDVFRTZBNTQ2OEI5QkYzQ0MwAA==","message_status":"accepted"}]}
+[2025-07-06 16:30:46] sendWhatsAppMessage response: {"messaging_product":"whatsapp","contacts":[{"input":"917096305498","wa_id":"917096305498"}],"messages":[{"id":"wamid.HBgMOTE3MDk2MzA1NDk4FQIAERgSQURGOUNFMUU5QjVFMzA5ODQ1AA==","message_status":"accepted"}]}
+[2025-07-06 16:30:47] Verification failed or conditions not met.
+[2025-07-06 16:30:47] 
+[2025-07-06 16:30:49] Verification failed or conditions not met.
+[2025-07-06 16:30:49] 
+[2025-07-06 16:30:49] Verification failed or conditions not met.
+[2025-07-06 16:30:49] 
+[2025-07-06 16:30:50] Verification failed or conditions not met.
+[2025-07-06 16:30:50] 
+[2025-07-06 16:30:50] Verification failed or conditions not met.
+[2025-07-06 16:30:50] 
+[2025-07-06 16:30:50] Verification failed or conditions not met.
+[2025-07-06 16:30:50] 
+[2025-07-06 16:30:51] Verification failed or conditions not met.
+[2025-07-06 16:30:51] 
