@@ -3,14 +3,18 @@ include('whatsappSendMsg.php');
 
 
 $hubVerifyToken = 'lorence_surfaces_workflow';
-$accessToken = 'EAAR8YYnJJZAIBPBG5SkIozxBXIzObVEVeGgIZCMbrFOoCBnBLVwukssOn8mw3saJyze9aldQNaFGphtnPqH9dWaNZCKu83iZC4d2HfhYFqZB405vKZCBZBY7GDECiXskHPTtS6sPEertdcHVcVWIDMwN7JSdEKfdHJV6bTgSGgKjZCeZAE11fY6pILN69JPauTctEXPZBEOQZCaJOanZCq4YVuDkZBuukG3U7SEaWmNlJq669dQZDZD';
+$accessToken = 'EAAR8YYnJJZAIBPJVt2cspRZBFBPpcZCZCJj1AbKJwgK3mJ7DvBunfU7Xnh2OUsFhjX9hHabRZCrZCjtA4gv6FVeEajVNFsEUKlZBokUrkPc1F3CJb4LZB6HKk4MvIsD3JYnES3pIb2JbzZBtKTmx3fOEwgzSzEZBjDnvlhDBRUBfXx9kbIeoZBhL1d6xN2BLKFmk5gkTZAhjrP1GSGq0PWDzLoLxfJvaojJSVBci05Jzo495rgZDZD';
 
 $logFile = __DIR__ . '/webhook_session.log';
 function writeLog($message)
 {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
+     if (is_array($message) || is_object($message)) {
+        $message = print_r($message, true);
+    }
     file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
+    
 }
 
 function getCityStateFromPincode($pincode) {
@@ -63,6 +67,9 @@ $phone_number = $data['entry'][0]['changes'][0]['value']['messages'][0]['from'];
 $message = $data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body'];
 
 writeLog($message);
+writeLog($data['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name']);
+$username=$data['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name'];
+
 $version = "v22.0";
 $phone_number_id = 642760735595014;
 
@@ -77,7 +84,7 @@ $inqueryTemplate = [
             "text" => "Header"
         ],
         "body" => [
-            "text" => "Hi Himanshu 👋  How may I assist you today ?"
+            "text" => "Hi $username 👋  How may I assist you today ?"
         ],
         "footer" => [
             "text" => ""
@@ -491,7 +498,7 @@ $askCountry = [
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Awesome, thanks! 🌍 Which country are you looking to import from or export to?"
+        "body" => "Awesome, thanks! 🌍 *Which country* are you looking to *import* from or *export* to?"
     ]
 ];
 
@@ -509,7 +516,7 @@ $askBrands = [
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "To help us serve you better, are you currently working with any specific tile brands? Let us know! 🏷️"
+        "body" => "To help us serve you better, are you *currently working* with any *specific tile brands?* Let us know! 🏷️"
     ]
 ];
 
