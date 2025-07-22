@@ -3,23 +3,23 @@ include('whatsappSendMsg.php');
 
 
 $hubVerifyToken = 'lorence_surfaces_workflow';
-$accessToken = 'EAAR8YYnJJZAIBPJVt2cspRZBFBPpcZCZCJj1AbKJwgK3mJ7DvBunfU7Xnh2OUsFhjX9hHabRZCrZCjtA4gv6FVeEajVNFsEUKlZBokUrkPc1F3CJb4LZB6HKk4MvIsD3JYnES3pIb2JbzZBtKTmx3fOEwgzSzEZBjDnvlhDBRUBfXx9kbIeoZBhL1d6xN2BLKFmk5gkTZAhjrP1GSGq0PWDzLoLxfJvaojJSVBci05Jzo495rgZDZD';
+$accessToken = 'EAAR8YYnJJZAIBPGpfcnyd3O1gtCnyPUoHKDEwkdxF6criDZCInLzobh9ElCZCSYMhJz4if3oCFYZC6bA9dElNls5Ak86oQNTYlDSAMKGzqzObwuZADcKUZA0dlfvmLMfFY72LYrgeXOKQZBklfiAoZBZB2zcYjlhyZCZBNWEaemtDLcms2jmbSkQIu17x0ZA2pF1ZCrffeZCCxlrZBxNqkM6CRZBoT7UbbZCSwTXQcrkWGarjAZB7ouwZDZD';
 
 $logFile = __DIR__ . '/webhook_session.log';
 function writeLog($message)
 {
     global $logFile;
     $timestamp = date('Y-m-d H:i:s');
-     if (is_array($message) || is_object($message)) {
+    if (is_array($message) || is_object($message)) {
         $message = print_r($message, true);
     }
     file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
-    
 }
 
-function getCityStateFromPincode($pincode) {
+function getCityStateFromPincode($pincode)
+{
     $url = "https://cqpplefitting.com/pincode/Api/findStateAndCityByPincode.php";
-    
+
     $payload = json_encode([
         "pincode" => $pincode
     ]);
@@ -68,7 +68,7 @@ $message = $data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body
 
 writeLog($message);
 writeLog($data['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name']);
-$username=$data['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name'];
+$username = $data['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name'];
 
 $version = "v22.0";
 $phone_number_id = 642760735595014;
@@ -627,15 +627,14 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                                 "to" => $phone_number,
                                 "type" => "text",
                                 "text" => [
-                                    "body" => "❌ Invalid pincode. Please try again with a valid 6-digit pincode."
+                                    "body" => "❌ *Invalid pincode*. Please try again with a valid 6-digit pincode."
                                 ]
                             ], $version, $phone_number_id);
                             $sessionData[$phone_number]['stage'] = 2;
                         }
 
                         file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
-                    }
-                    else{
+                    } else {
                         sendWhatsAppTextMessage($accessToken, $phone_number, $errorMessage, $version, $phone_number_id);
                         $sessionData[$phone_number]['stage'] = 2;
                     }
@@ -643,89 +642,154 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 break;
 
             case 3:
-                // User sent pincode
-                writeLog("Stage 3: Seletced tiles type: ");
+                writeLog("Stage 3: Processing tile selection...");
 
-                $tiles = $entry['interactive']['list_reply'];
-                $tiles_id = $tiles['id'] ?? '';
-                $tiles_title = $tiles['title'] ?? '';
-                $tiles_description = $tiles['description'] ?? '';
-                writeLog($tiles);
-                writeLog($tiles_id);
-                writeLog($tiles_title);
-                writeLog($tiles_description);
-
-                $templateMap = [
-                    'search_by_area' => $search_by_area,
-                    'search_by_size' => $search_by_size,
-                    'search_by_surface' => $search_by_surface,
-                    'search_by_look' => $search_by_look
-                ];
-
-                if (array_key_exists($tiles_id, $templateMap)) {
-                    sendWhatsAppTextMessage($accessToken, $phone_number, $templateMap[$tiles_id], $version, $phone_number_id);
-                    $sessionData[$phone_number]['stage'] = 4;
-                } else {
-                    sendWhatsAppTextMessage($accessToken, $phone_number, [
-                        "messaging_product" => "whatsapp",
-                        "to" => $phone_number,
-                        "type" => "text",
-                        "text" => [
-                            "body" => "Sorry, we couldn't process your selection. Please try again."
-                        ]
-                    ], $version, $phone_number_id);
-                    $sessionData[$phone_number]['stage'] = 3;
+                if (!isset($sessionData[$phone_number]['invalid_attempts'])) {
+                    $sessionData[$phone_number]['invalid_attempts'] = 0;
                 }
-                file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
-                break;
 
+                if (
+                    isset($entry['interactive']) &&
+                    (isset($entry['interactive']['button_reply']) || isset($entry['interactive']['list_reply']))
+                ) {
 
-                case 4:
-                    writeLog("Stage 4: Selected Look and Feel:");
+                    if (isset($entry['interactive']['list_reply'])) {
+                        $tiles = $entry['interactive']['list_reply'];
+                        $tiles_id = $tiles['id'] ?? '';
+                        $tiles_title = $tiles['title'] ?? '';
+                        $tiles_description = $tiles['description'] ?? '';
 
-                    // Check if user replied with interactive button or list
-                    if (isset($entry['interactive']) && 
-                        (isset($entry['interactive']['button_reply']) || isset($entry['interactive']['list_reply']))) {
-                        
-                        // User replied properly, proceed
-                        sendWhatsAppTextMessage($accessToken, $phone_number, $ask_squarefeet, $version, $phone_number_id);
-                        
-                        $sessionData[$phone_number]['stage'] = 5;
-                        file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                        writeLog("Stage 3: Selected tiles type: $tiles_title");
+
+                        $sessionData[$phone_number]['tiles_title'] = $tiles_title;
+
+                        $templateMap = [
+                            'search_by_area' => $search_by_area,
+                            'search_by_size' => $search_by_size,
+                            'search_by_surface' => $search_by_surface,
+                            'search_by_look' => $search_by_look
+                        ];
+
+                        if (array_key_exists($tiles_id, $templateMap)) {
+                            sendWhatsAppTextMessage($accessToken, $phone_number, $templateMap[$tiles_id], $version, $phone_number_id);
+                            $sessionData[$phone_number]['stage'] = 4;
+                            $sessionData[$phone_number]['invalid_attempts'] = 0; 
+                        } else {
+                            $sessionData[$phone_number]['invalid_attempts']++;
+
+                            if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
+                                sendWhatsAppTextMessage($accessToken, $phone_number, [
+                                    "messaging_product" => "whatsapp",
+                                    "to" => $phone_number,
+                                    "type" => "text",
+                                    "text" => [
+                                        "body" => "You have reached the maximum number of attempts. Thank you."
+                                    ]
+                                ], $version, $phone_number_id);
+                                unset($sessionData[$phone_number]); 
+                            } else {
+                                sendWhatsAppTextMessage($accessToken, $phone_number, [
+                                    "messaging_product" => "whatsapp",
+                                    "to" => $phone_number,
+                                    "type" => "text",
+                                    "text" => [
+                                        "body" => "Sorry, we couldn't process your selection. Please try again."
+                                    ]
+                                ], $version, $phone_number_id);
+                                $sessionData[$phone_number]['stage'] = 3;
+                            }
+                        }
                     } else {
-                        // User did not reply with interactive button/list
-                        writeLog("User did not reply with interactive button at stage 4.");
+                        $sessionData[$phone_number]['invalid_attempts']++;
 
-                        $errorMessage = [
+                        if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
+                            sendWhatsAppTextMessage($accessToken, $phone_number, [
+                                "messaging_product" => "whatsapp",
+                                "to" => $phone_number,
+                                "type" => "text",
+                                "text" => [
+                                    "body" => "You have reached the maximum number of attempts. Thank you."
+                                ]
+                            ], $version, $phone_number_id);
+                            unset($sessionData[$phone_number]);
+                        } else {
+                            sendWhatsAppTextMessage($accessToken, $phone_number, [
+                                "messaging_product" => "whatsapp",
+                                "to" => $phone_number,
+                                "type" => "text",
+                                "text" => [
+                                    "body" => "Please choose a valid option from the list."
+                                ]
+                            ], $version, $phone_number_id);
+                            $sessionData[$phone_number]['stage'] = 3;
+                        }
+                    }
+                } else {
+                    $sessionData[$phone_number]['invalid_attempts']++;
+
+                    if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
+                        sendWhatsAppTextMessage($accessToken, $phone_number, [
                             "messaging_product" => "whatsapp",
                             "to" => $phone_number,
                             "type" => "text",
                             "text" => [
-                                "body" => "⚠️ Please reply using the button options to proceed."
+                                "body" => "You have reached the maximum number of attempts. Thank you."
                             ]
-                        ];
-                        sendWhatsAppTextMessage($accessToken, $phone_number, $errorMessage, $version, $phone_number_id);
-
-                        // Do NOT increment stage, wait for correct reply
-                        $sessionData[$phone_number]['stage'] = 4;
-                        file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                        ], $version, $phone_number_id);
+                        unset($sessionData[$phone_number]);
+                    } else {
+                        sendWhatsAppTextMessage($accessToken, $phone_number, [
+                            "messaging_product" => "whatsapp",
+                            "to" => $phone_number,
+                            "type" => "text",
+                            "text" => [
+                                "body" => "Invalid response. Please select an option from the list shown."
+                            ]
+                        ], $version, $phone_number_id);
+                        $sessionData[$phone_number]['stage'] = 3;
                     }
-                    break;
+                }
+
+                file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                break;
 
 
+            case 4:
+                writeLog("Stage 4: Selected Look and Feel:");
 
-            // case 4:
-            //     writeLog("Stage 4: Seletced Look and Feel: ");
+                if (
+                    isset($entry['interactive']) &&
+                    (isset($entry['interactive']['button_reply']) || isset($entry['interactive']['list_reply']))
+                ) {
 
-            //     sendWhatsAppTextMessage($accessToken, $phone_number, $ask_squarefeet, $version, $phone_number_id);
+                    $sessionData[$phone_number]['tile_type'] = $entry['interactive']['list_reply']['title'];
 
-            //     $sessionData[$phone_number]['stage'] = 5;
-            //     file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
-            //     break;
+                    // User replied properly, proceed
+                    sendWhatsAppTextMessage($accessToken, $phone_number, $ask_squarefeet, $version, $phone_number_id);
 
+                    $sessionData[$phone_number]['stage'] = 5;
+                    file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                } else {
+                    writeLog("User did not reply with interactive button at stage 4.");
+
+                    $errorMessage = [
+                        "messaging_product" => "whatsapp",
+                        "to" => $phone_number,
+                        "type" => "text",
+                        "text" => [
+                            "body" => "⚠️ Please reply using the button options to proceed."
+                        ]
+                    ];
+                    sendWhatsAppTextMessage($accessToken, $phone_number, $errorMessage, $version, $phone_number_id);
+
+                    $sessionData[$phone_number]['stage'] = 4;
+                    file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                }
+                break;
             case 5:
                 // User sent pincode
                 writeLog("Stage 5: squre feet enterd:  ");
+                $sessionData[$phone_number]['squre_feet'] = trim($entry['text']['body']);
 
                 sendWhatsAppTextMessage($accessToken, $phone_number, $thankyou, $version, $phone_number_id);
 
@@ -733,14 +797,13 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 break;
         }
-    }
-    elseif($flow === 'dealership_inquiry'){
+    } elseif ($flow === 'dealership_inquiry') {
         switch ($stage) {
             case 1:
                 sendWhatsAppMessage($accessToken, "917096305498", "ask_pincode", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
-                $message = strtolower(trim($entry['text']['body']));
+                $message = $entry['text']['body'];
                 writeLog("message getted after pincode");
 
                 $sessionData[$phone_number]['stage'] = 2;
@@ -782,12 +845,13 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                     }
                 }
                 break;
-            
+
             case 3:
+                $message = $entry['text']['body'];
+                $sessionData[$phone_number]['companyname'] = $message;
                 sendWhatsAppTextMessage($accessToken, $phone_number, $askOtherSupplier, $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
-                $message = strtolower(trim($entry['text']['body']));
                 writeLog("message getted after company name");
 
                 $sessionData[$phone_number]['stage'] = 4;
@@ -796,10 +860,11 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 break;
 
             case 4:
+                $message = $entry['text']['body'];
+                $sessionData[$phone_number]['supplier'] = $message;
                 sendWhatsAppTextMessage($accessToken, $phone_number, $askOnboardTiming, $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
-                $message = strtolower(trim($entry['text']['body']));
                 writeLog("message getted after supplir details");
 
                 $sessionData[$phone_number]['stage'] = 5;
@@ -808,10 +873,13 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 break;
 
             case 5:
-                sendWhatsAppTextMessage($accessToken, $phone_number, $askOnboardTiming, $version, $phone_number_id);
+                $message = $entry['interactive']['button_reply']['title'];
+                writeLog("=======================================================================================");
+                writeLog($message);
+                $sessionData[$phone_number]['onbordtime'] = $message;
+                sendWhatsAppTextMessage($accessToken, $phone_number, $dealershipThankYou, $version, $phone_number_id);
                 writeLog("Delarship Flow Completed ");
 
-                $message = strtolower(trim($entry['text']['body']));
                 writeLog("message getted after supplir details");
 
                 $sessionData[$phone_number]['stage'] = 6;
@@ -819,8 +887,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 // echo "step 5";
                 break;
         }
-    }
-    elseif($flow === 'exportImport_inqiry'){
+    } elseif ($flow === 'exportImport_inqiry') {
         switch ($stage) {
             case 1:
                 sendWhatsAppTextMessage($accessToken, $phone_number, $askCompanyName, $version, $phone_number_id);
@@ -829,12 +896,17 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 $message = strtolower(trim($entry['text']['body']));
                 writeLog("message getted after company name");
 
+                writeLog($message);
+
                 $sessionData[$phone_number]['stage'] = 2;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 2";
                 break;
 
             case 2:
+                $sessionData[$phone_number]['companyname'] = $message;
+                writeLog("------------------------------------ for STORE ----------------");
+
                 sendWhatsAppTextMessage($accessToken, $phone_number, $askCountry, $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
@@ -845,8 +917,11 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 3";
                 break;
-            
+
             case 3:
+                $sessionData[$phone_number]['countryname'] = $message;
+                writeLog("------------------------------------ for STORE ----------------");
+
                 sendWhatsAppTextMessage($accessToken, $phone_number, $askEmail, $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
@@ -859,6 +934,9 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 break;
 
             case 4:
+                $sessionData[$phone_number]['email'] = $message;
+                writeLog("------------------------------------ for STORE ----------------");
+
                 sendWhatsAppTextMessage($accessToken, $phone_number, $askBrands, $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
@@ -871,6 +949,9 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 break;
 
             case 5:
+                $sessionData[$phone_number]['brandname'] = $message;
+                writeLog("------------------------------------ for STORE ----------------");
+
                 sendWhatsAppTextMessage($accessToken, $phone_number, $exportThankYou, $version, $phone_number_id);
                 writeLog("Export / Import  Flow Completed ");
 
@@ -882,9 +963,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 // echo "step 5";
                 break;
         }
-    }
-    elseif($flow== 'request_call_back'){
-        switch($stage){
+    } elseif ($flow == 'request_call_back') {
+        switch ($stage) {
             case 1:
                 sendWhatsAppMessage($accessToken, "917096305498", "requestcallbackthankyou ", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
