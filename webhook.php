@@ -3,7 +3,7 @@ include('whatsappSendMsg.php');
 
 
 $hubVerifyToken = 'lorence_surfaces_workflow';
-$accessToken = 'EAAR8YYnJJZAIBPEVUOZBiRSAo7OEwZCZAbduQbeSCzOz8UJYEZC6ZAZB6Csj6eDJQlv6zk98hMAzJpbp7nFWnkKudBUeruXoVB2Jzn3emh7DC7HYhOb3ADKpzb13rLtKxE2oKE4lTECMP3IPakFMR9pN4AmhwtZCYvzgdnF7BqEpSCQxZCGzSy8hxbQwdQ1cPKfeDDcot7jYwVulcnkdQ4ZAnVxKCga0ipwOYOa3De0SRi8AZDZD';
+$accessToken = 'EAAR8YYnJJZAIBPKWVBFUNlfcX3A4GfDzxMBXV1xNBOXyDCZAIpEACOaCbRmztBdaaInXjkz68CO1dpZBz9np4H8wXh9khvMhfP1B25dj0T2mkZBmOCwB9ghR2J0s1gJg0mpZA6vHghr0ZAQwjsF0O4elED1GlLNeuI4iKq3PKCjm0ekoL0tBjmyjvbjdbl52HebnptIVyfsWFJ44NhHs2UHOZAUVyqDYSFwJHqdLEa3pKsZD';
 
 $logFile = __DIR__ . '/webhook_session.log';
 function writeLog($message)
@@ -68,6 +68,80 @@ function handleMaxAttempts(&$sessionData, $phone_number, $maxAttempts, $failureT
     }
 }
 
+function completeAndClearSession($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file)
+{
+    // Format the collected data
+    $userData = $sessionData[$phone_number];
+    writeLog($userData);
+    $summary = "✅ Thank you for your response! Here’s what we received:\n\n";
+    $summary .= "🧾 Company Name: " . '*' . ($userData['companyname'] . '*' ?? '-') . "\n";
+    $summary .= "🌍 Country: " . '*' . ($userData['countryname'] ?? '-') . '*'  . "\n";
+    $summary .= "✉️ Email: " . '*' . ($userData['email'] ?? '-') . '*'  . "\n";
+    $summary .= "🏷️ Brand Name: " . '*' . ($userData['brandname'] . '*' ?? '-') . "\n";
+    $summary .= "\nWe’ll get in touch with you shortly.";
+
+    // Create message template
+    $thankYouTemplate = [
+        "messaging_product" => "whatsapp",
+        "to" => $phone_number,
+        "type" => "text",
+        "text" => [
+            "body" => $summary
+        ]
+    ];
+
+    // Send the summary to user
+    // sendWhatsAppTextMessage($accessToken, $phone_number, $thankYouTemplate, $version, $phone_number_id);
+
+    // Log and clear session
+    writeLog("Session completed for $phone_number. Clearing session data.");
+    unset($sessionData[$phone_number]);
+
+    // Save updated (cleared) data
+    file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+}
+function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file)
+{
+    $url = "http://192.168.1.28:5003/api/WhatsappAPIs/AddLead";
+
+    $data = [
+        "name" => $sessionData[$phone_number]['name'] ?? '',
+        "mobileNo" => $phone_number,
+        "location" => $sessionData[$phone_number]['location'] ?? '',
+        "category" => $sessionData[$phone_number]['category'] ?? '',
+        "squareFeet" => $sessionData[$phone_number]['squre_feet'] ?? '',
+        "brandName" => $sessionData[$phone_number]['brandname'] ?? ''
+    ];
+
+    $payload = json_encode($data);
+
+    $ch = curl_init($url);
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if ($response === false) {
+        $error = curl_error($ch);
+        writeLog("cURL error while posting to Ventas: $error");
+    } else {
+        writeLog("Posted to Ventas (HTTP $httpCode): $response");
+    }
+
+    curl_close($ch);
+}
+
+
+function isValidBrandName($brandName) {
+    return preg_match("/^[a-zA-Z\s]{3,}$/", $brandName);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['hub_challenge']) && isset($_GET['hub_verify_token']) && $_GET['hub_verify_token'] === $hubVerifyToken) {
     writeLog("Verification successful. hub_challenge returned.");
     echo $_GET['hub_challenge'];
@@ -85,6 +159,7 @@ $message = $data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body
 writeLog($message);
 writeLog($data['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name']);
 $username = $data['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['name'];
+// $phonenumber = $data['entry'][0]['changes'][0]['value']['contacts'][0]['wa_id'];
 
 $version = "v22.0";
 $phone_number_id = 642760735595014;
@@ -187,7 +262,6 @@ $tilesSelectionTemplate = [
         ]
     ]
 ];
-
 $search_by_area = [
     "messaging_product" => "whatsapp",
     "to" => "917096305498",
@@ -246,7 +320,6 @@ $search_by_area = [
         ]
     ]
 ];
-
 $search_by_size = [
     "messaging_product" => "whatsapp",
     "to" => "917096305498",
@@ -305,7 +378,6 @@ $search_by_size = [
         ]
     ]
 ];
-
 $search_by_surface = [
     "messaging_product" => "whatsapp",
     "to" => "917096305498",
@@ -369,7 +441,6 @@ $search_by_surface = [
         ]
     ]
 ];
-
 $search_by_look = [
     "messaging_product" => "whatsapp",
     "to" => "917096305498",
@@ -433,7 +504,6 @@ $search_by_look = [
         ]
     ]
 ];
-
 $ask_squarefeet = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -442,7 +512,6 @@ $ask_squarefeet = [
         "body" => "Got it! 🧮\n\nPlease tell us how much you require (in square feet):"
     ]
 ];
-
 $thankyou = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -460,7 +529,6 @@ $askCompanyName = [
         "body" => "Thank you! 🙏\n\nCould you please share your Firm or Company Name with us?"
     ]
 ];
-
 $askOtherSupplier = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -469,7 +537,6 @@ $askOtherSupplier = [
         "body" => "Are you currently sourcing from any other supplier?\nIf yes, please mention the name – this helps us serve you better. 😊"
     ]
 ];
-
 $askOnboardTiming = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -499,7 +566,6 @@ $askOnboardTiming = [
         ]
     ]
 ];
-
 $dealershipThankYou = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -517,7 +583,6 @@ $askCountry = [
         "body" => "Awesome, thanks! 🌍 *Which country* are you looking to *import* from or *export* to?"
     ]
 ];
-
 $askEmail = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -526,7 +591,6 @@ $askEmail = [
         "body" => "Got it! could you please share your email address? 📧"
     ]
 ];
-
 $askBrands = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -535,7 +599,6 @@ $askBrands = [
         "body" => "To help us serve you better, are you *currently working* with any *specific tile brands?* Let us know! 🏷️"
     ]
 ];
-
 $exportThankYou = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -595,8 +658,38 @@ $invalid_interactive_response = [
         "body" => "⚠️ Invalid response. Please tap one of the buttons provided to proceed. Avoid typing your answer."
     ]
 ];
-
-
+$invalid_companyname_response = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "⚠️ The *company name* you entered is *invalid*. Please enter a *valid Compny name*."
+    ]
+];
+$retryMessageCountry = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "*❌ Invalid country name.*\nPlease enter a valid country name like *India*, *USA*, etc."
+    ]
+];
+$retryMessageEmail = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "*❌ Invalid email address.*\nPlease enter a valid email like *example@email.com*"
+    ]
+];
+$retryMessageBrand = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "*❌ Invalid brand name.*\nPlease enter a valid brand name ."
+    ]
+];
 
 
 
@@ -639,6 +732,8 @@ if (isset($entry['interactive']['list_reply']) && empty($sessionData[$phone_numb
         'stage' => 1,
         'flow' => $reply_id
     ];
+    $sessionData[$phone_number]['phonenumber'] = $phone_number;
+    $sessionData[$phone_number]['username'] = $username;
     writeLog($sessionData[$phone_number]['stage']);
     file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
 }
@@ -773,6 +868,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                     $sessionData[$phone_number]['squre_feet'] = $squareFeet;
                     $sessionData[$phone_number]['stage'] = 6;
                     $sessionData[$phone_number]['invalid_attempts'] = 0;
+                    completeAndClearSession($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file);
+
 
                     sendWhatsAppTextMessage($accessToken, $phone_number, $thankyou, $version, $phone_number_id);
                 } else {
@@ -922,6 +1019,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
 
                     $sessionData[$phone_number]['stage'] = 6;
                     $sessionData[$phone_number]['invalid_attempts'] = 0;
+                    completeAndClearSession($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file);
                 } else {
                     handleMaxAttempts(
                         $sessionData,
@@ -956,44 +1054,109 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 break;
 
             case 2:
-                $sessionData[$phone_number]['companyname'] = $message;
-                writeLog("------------------------------------ for STORE ----------------");
+                $message = trim($entry['text']['body']);
 
-                sendWhatsAppTextMessage($accessToken, $phone_number, $askCountry, $version, $phone_number_id);
-                writeLog("Message senddned successfully");
+                if (preg_match('/[a-zA-Z0-9]/', $message)) {
+                    // Valid company name
+                    $sessionData[$phone_number]['companyname'] = $message;
+                    writeLog("------------------------------------ for STORE ----------------");
 
-                $message = strtolower(trim($entry['text']['body']));
-                writeLog("message getted after company name");
+                    sendWhatsAppTextMessage($accessToken, $phone_number, $askCountry, $version, $phone_number_id);
+                    writeLog("Company name valid: $message");
 
-                $sessionData[$phone_number]['stage'] = 3;
+                    $sessionData[$phone_number]['stage'] = 3;
+                    $sessionData[$phone_number]['invalid_attempts'] = 0;
+                } else {
+                    // Invalid company name - handle invalid response
+                    handleMaxAttempts(
+                        $sessionData,
+                        $phone_number,
+                        2, // max attempts
+                        $maximum_attempts_reached, // template name
+                        $invalid_companyname_response,  // template name
+                        2, // retry current stage
+                        $accessToken,
+                        $version,
+                        $phone_number_id
+                    );
+                }
+
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 3";
                 break;
 
             case 3:
+                writeLog("----- Inside Stage 3 -----");
+                $message = trim($entry['text']['body']);
+                $lowerMessage = strtolower($message);
+
+                if (!preg_match("/^[a-zA-Z\s]{3,}$/", $message)) {
+                    writeLog("❌ Invalid country name: $message");
+                    // Call the common handler for retry or failure
+                    handleMaxAttempts(
+                        $sessionData,
+                        $phone_number,
+                        3, // Max attempts
+                        $maximum_attempts_reached,
+                        $retryMessageCountry,
+                        3,
+                        $accessToken,
+                        $version,
+                        $phone_number_id
+                    );
+                    file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                    break;
+                }
+
                 $sessionData[$phone_number]['countryname'] = $message;
-                writeLog("------------------------------------ for STORE ----------------");
+                $sessionData[$phone_number]['invalid_attempts'] = 0;
 
                 sendWhatsAppTextMessage($accessToken, $phone_number, $askEmail, $version, $phone_number_id);
-                writeLog("Message senddned successfully");
-
-                $message = strtolower(trim($entry['text']['body']));
-                writeLog("message getted after Email ");
+                writeLog("📧 Email question sent.");
 
                 $sessionData[$phone_number]['stage'] = 4;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 4";
                 break;
 
+
             case 4:
+                writeLog("----- Inside Stage 4 -----");
+
+                $message = trim($entry['text']['body']);
+                $lowerMessage = strtolower($message);
+
+                // 📧 Validate email format
+                if (!preg_match("/^[a-zA-Z\s]{3,}$/", $message)) {
+                    writeLog("❌ Invalid email address: $message");
+
+                    // ❌ Email validation failed response template
+
+
+                    // Call common max attempt handler
+                    handleMaxAttempts(
+                        $sessionData,
+                        $phone_number,
+                        3, // Max attempts allowed
+                        $maximum_attempts_reached,
+                        $retryMessageEmail,
+                        4,
+                        $accessToken,
+                        $version,
+                        $phone_number_id
+                    );
+
+                    file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                    break;
+                }
+
+                // ✅ Valid email
                 $sessionData[$phone_number]['email'] = $message;
-                writeLog("------------------------------------ for STORE ----------------");
+                // Reset invalid_attempts for the next stage
+                $sessionData[$phone_number]['invalid_attempts'] = 0;
 
                 sendWhatsAppTextMessage($accessToken, $phone_number, $askBrands, $version, $phone_number_id);
-                writeLog("Message senddned successfully");
-
-                $message = strtolower(trim($entry['text']['body']));
-                writeLog("message getted after Brand name ");
+                writeLog("📦 Brand question sent.");
 
                 $sessionData[$phone_number]['stage'] = 5;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
@@ -1001,18 +1164,42 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 break;
 
             case 5:
+                writeLog("----- Inside Stage 5 -----");
+
+                $message = trim($entry['text']['body']);
+
+                // 🧪 Validate brand name
+                if (!isValidBrandName($message)) {
+                    writeLog("❌ Invalid brand name: $message");
+
+                    handleMaxAttempts(
+                        $sessionData,
+                        $phone_number,
+                        3, // Max retries
+                        $maximum_attempts_reached,
+                        $retryMessageBrand,
+                        5, // Stay in same stage
+                        $accessToken,
+                        $version,
+                        $phone_number_id
+                    );
+
+                    file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                    break;
+                }
+
+                // ✅ Brand name is valid
                 $sessionData[$phone_number]['brandname'] = $message;
-                writeLog("------------------------------------ for STORE ----------------");
+                $sessionData[$phone_number]['invalid_attempts'] = 0;
+                $sessionData[$phone_number]['stage'] = 6;
 
                 sendWhatsAppTextMessage($accessToken, $phone_number, $exportThankYou, $version, $phone_number_id);
-                writeLog("Export / Import  Flow Completed ");
+                writeLog("🎉 Export/Import flow completed.");
 
-                $message = strtolower(trim($entry['text']['body']));
-                writeLog("The Last msg s");
+                // Send summary & clear session
+                postDataToVentas($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file);
 
-                $sessionData[$phone_number]['stage'] = 6;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
-                // echo "step 5";
                 break;
         }
     } elseif ($flow == 'request_call_back') {
