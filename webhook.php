@@ -3,7 +3,7 @@ include('whatsappSendMsg.php');
 
 
 $hubVerifyToken = 'lorence_surfaces_workflow';
-$accessToken = 'EAAR8YYnJJZAIBPKWVBFUNlfcX3A4GfDzxMBXV1xNBOXyDCZAIpEACOaCbRmztBdaaInXjkz68CO1dpZBz9np4H8wXh9khvMhfP1B25dj0T2mkZBmOCwB9ghR2J0s1gJg0mpZA6vHghr0ZAQwjsF0O4elED1GlLNeuI4iKq3PKCjm0ekoL0tBjmyjvbjdbl52HebnptIVyfsWFJ44NhHs2UHOZAUVyqDYSFwJHqdLEa3pKsZD';
+$accessToken = 'EAAR8YYnJJZAIBPAZC6QTJP9mPCP6bb0ZAPatDGEqthPyLfsITwYqnYWuRHrB0D4ZACcLAZCm5WaseqgZALWLO50c6mZCTx85dnZBBXt2IjxFBV1GUTBaP0hjiHmonhEfVSbPIB4wJZBj7fb2zZBPOea8JMVA3LfrxEcltgWfZBSTdUxykZBDrMhr1wVZAf53ZCo2x3wPy7b30E5XF92I12tqJ7p69cbwALY8LeU3f4hLuRX36KIwZDZD';
 
 $logFile = __DIR__ . '/webhook_session.log';
 function writeLog($message)
@@ -15,7 +15,6 @@ function writeLog($message)
     }
     file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
 }
-
 function getCityStateFromPincode($pincode)
 {
     $url = "https://cqpplefitting.com/pincode/Api/findStateAndCityByPincode.php";
@@ -67,7 +66,6 @@ function handleMaxAttempts(&$sessionData, $phone_number, $maxAttempts, $failureT
         $sessionData[$phone_number]['stage'] = $stage; // Retry same stage
     }
 }
-
 function completeAndClearSession($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file)
 {
     // Format the collected data
@@ -104,41 +102,210 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
 {
     $url = "http://192.168.1.28:5003/api/WhatsappAPIs/AddLead";
 
-    $data = [
-        "name" => $sessionData[$phone_number]['name'] ?? '',
-        "mobileNo" => $phone_number,
-        "location" => $sessionData[$phone_number]['location'] ?? '',
-        "category" => $sessionData[$phone_number]['category'] ?? '',
-        "squareFeet" => $sessionData[$phone_number]['squre_feet'] ?? '',
-        "brandName" => $sessionData[$phone_number]['brandname'] ?? ''
-    ];
+    $data = []; // default empty
 
-    $payload = json_encode($data);
+    if ($sessionData[$phone_number]['flow'] === 'product_inquiry') {
+        $remarks = "
+    Name: {$sessionData[$phone_number]['username']} , \n
+    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} , \n
+    Pincode: {$sessionData[$phone_number]['pincode']} , \n
+    Search Preference: {$sessionData[$phone_number]['tiles_title']} , \n
+    {$sessionData[$phone_number]['tiles_title']} : {$sessionData[$phone_number]['tile_type']} , \n
+    Required Area: {$sessionData[$phone_number]['squre_feet']}
 
-    $ch = curl_init($url);
+";
 
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json'
-    ]);
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($remarks);
+        writeLog('------------------------------------------------------------------------------------------------');
+        $data = [
+            "menuName" => "New Lead Menu",
+            "leadDetails" => [
+                "companyname" => $sessionData[$phone_number]['username'] ?? 'Whatsapp',
+                "email" =>  null,
+                "contactno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "website" => null,
+                "country" =>  null,
+                "state" => $sessionData[$phone_number]['state'] ?? '',
+                "city" => $sessionData[$phone_number]['city'] ?? '',
+                "address" => null,
+                "managername" => $sessionData[$phone_number]['username'] ?? null,
+                "manageremail" => null,
+                "managercontactno" => null,
+                "managerwhatsappno" => null,
+                "instagramlink" => null,
+                "facebooklink" => null,
+                "linkedinlink" => null,
+                "leadsource" => 'Chatbot - ' . $sessionData[$phone_number]['flowtitle'] ?? 'Chatbot Inquiry',
+                "remarks" => $remarks,
+                "arrivaldate" => null,
+                "stageid" => 1,
+                "tagid" => 2,
+                "agencyid" => 1,
+                "agencyname" => null,
+                "isclient" => false,
+                "isrejected" => false,
+                "createdby" => null,
+                "createddate" => null,
+                "modifiedby" => null,
+                "modifieddate" => null,
+                "deletedat" => null,
+                "totalRecords" => 1,
+                "userid" => null,
+                "username" => null,
+                "notificationMessage" => null,
+                "googleMapLink" => null,
+                "isGenerateLead" => null,
+                "remarkUpdateDate" => null
+            ]
+        ];
+    }
+    elseif ($sessionData[$phone_number]['flow'] === 'dealership_inquiry') {
+        $remarks = "
+    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
+    Pincode: {$sessionData[$phone_number]['pincode']} , \n
+    Firm Name: {$sessionData[$phone_number]['companyname']} , \n
+    Current Supplier: {$sessionData[$phone_number]['supplier']} , \n
+    Onboarding Time: {$sessionData[$phone_number]['onbordtime']} 
+";
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($remarks);
+        writeLog('------------------------------------------------------------------------------------------------');
+        $data = [
+            "menuName" => "New Lead Menu",
+            "leadDetails" => [
+                "companyname" => $sessionData[$phone_number]['companyname'] ?? 'Whatsapp',
+                "email" =>  null,
+                "contactno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "website" => null,
+                "country" =>  null,
+                "state" => $sessionData[$phone_number]['state'] ?? '',
+                "city" => $sessionData[$phone_number]['city'] ?? '',
+                "address" => null,
+                "managername" => $sessionData[$phone_number]['username'] ?? null,
+                "manageremail" => null,
+                "managercontactno" => null,
+                "managerwhatsappno" => null,
+                "instagramlink" => null,
+                "facebooklink" => null,
+                "linkedinlink" => null,
+                "leadsource" => 'Chatbot - ' . $sessionData[$phone_number]['flowtitle'] ?? 'Chatbot Inquiry',
+                "remarks" => $remarks,
+                "arrivaldate" => null,
+                "stageid" => 1,
+                "tagid" => 2,
+                "agencyid" => 1,
+                "agencyname" => null,
+                "isclient" => false,
+                "isrejected" => false,
+                "createdby" => null,
+                "createddate" => null,
+                "modifiedby" => null,
+                "modifieddate" => null,
+                "deletedat" => null,
+                "totalRecords" => 1,
+                "userid" => null,
+                "username" => null,
+                "notificationMessage" => null,
+                "googleMapLink" => null,
+                "isGenerateLead" => null,
+                "remarkUpdateDate" => null
+            ]
+        ];
+    }
+    elseif ($sessionData[$phone_number]['flow'] === 'exportImport_inqiry') {
+        $remarks = "
+    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
+    Company Name: {$sessionData[$phone_number]['companyname'] } ,
+    Target Country: {$sessionData[$phone_number]['countryname']} , \n
+    Email: {$sessionData[$phone_number]['email']} , \n
+    Associated Brand: {$sessionData[$phone_number]['brandname']}
+";
 
-    if ($response === false) {
-        $error = curl_error($ch);
-        writeLog("cURL error while posting to Ventas: $error");
-    } else {
-        writeLog("Posted to Ventas (HTTP $httpCode): $response");
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($remarks);
+        writeLog('------------------------------------------------------------------------------------------------');
+        $data = [
+            "menuName" => "New Lead Menu",
+            "leadDetails" => [
+                "companyname" => $sessionData[$phone_number]['companyname'] ?? 'Whatsapp',
+                "email" =>  $sessionData[$phone_number]['email'] ?? null,
+                "contactno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "website" => null,
+                "country" =>  $sessionData[$phone_number]['countryname'] ?? null,
+                "state" => null,
+                "city" => null,
+                "address" => null,
+                "managername" => $sessionData[$phone_number]['username'] ?? null,
+                "manageremail" => null,
+                "managercontactno" => null,
+                "managerwhatsappno" => null,
+                "instagramlink" => null,
+                "facebooklink" => null,
+                "linkedinlink" => null,
+                "leadsource" => 'Chatbot - ' . $sessionData[$phone_number]['flowtitle'] ?? 'Chatbot Inquiry',
+                "remarks" => $remarks,
+                "arrivaldate" => null,
+                "stageid" => 1,
+                "tagid" => 2,
+                "agencyid" => 1,
+                "agencyname" => null,
+                "isclient" => false,
+                "isrejected" => false,
+                "createdby" => null,
+                "createddate" => null,
+                "modifiedby" => null,
+                "modifieddate" => null,
+                "deletedat" => null,
+                "totalRecords" => 1,
+                "userid" => null,
+                "username" => null,
+                "notificationMessage" => null,
+                "googleMapLink" => null,
+                "isGenerateLead" => null,
+                "remarkUpdateDate" => null
+            ]
+        ];
     }
 
-    curl_close($ch);
+    // 🟨 Only proceed if $data is not empty
+    if (!empty($data)) {
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($data);
+        writeLog('------------------------------------------------------------------------------------------------');
+
+        $payload = json_encode($data);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json'
+        ]);
+
+        // $response = curl_exec($ch);
+        $response = false;
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($response === false) {
+            $error = curl_error($ch);
+            writeLog("cURL error while posting to Ventas: $error");
+        } else {
+            writeLog("Posted to Ventas (HTTP $httpCode): $response");
+        }
+
+        curl_close($ch);
+    } else {
+        writeLog("No data prepared for Ventas API; flow was not 'product_inquiry'.");
+    }
 }
-
-
-function isValidBrandName($brandName) {
+function isValidBrandName($brandName)
+{
     return preg_match("/^[a-zA-Z\s]{3,}$/", $brandName);
 }
 
@@ -730,7 +897,8 @@ if (isset($entry['interactive']['list_reply']) && empty($sessionData[$phone_numb
 
     $sessionData[$phone_number] = [
         'stage' => 1,
-        'flow' => $reply_id
+        'flow' => $reply_id,
+        'flowtitle' => $reply_title
     ];
     $sessionData[$phone_number]['phonenumber'] = $phone_number;
     $sessionData[$phone_number]['username'] = $username;
@@ -868,8 +1036,15 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                     $sessionData[$phone_number]['squre_feet'] = $squareFeet;
                     $sessionData[$phone_number]['stage'] = 6;
                     $sessionData[$phone_number]['invalid_attempts'] = 0;
-                    completeAndClearSession($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file);
 
+                    postDataToVentas(
+                        $accessToken,
+                        $phone_number,
+                        $sessionData,
+                        $version,
+                        $phone_number_id,
+                        $file
+                    );
 
                     sendWhatsAppTextMessage($accessToken, $phone_number, $thankyou, $version, $phone_number_id);
                 } else {
@@ -1019,6 +1194,14 @@ if (!empty($sessionData[$phone_number]['flow'])) {
 
                     $sessionData[$phone_number]['stage'] = 6;
                     $sessionData[$phone_number]['invalid_attempts'] = 0;
+                      postDataToVentas(
+                        $accessToken,
+                        $phone_number,
+                        $sessionData,
+                        $version,
+                        $phone_number_id,
+                        $file
+                    );
                     completeAndClearSession($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file);
                 } else {
                     handleMaxAttempts(
@@ -1090,7 +1273,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 $message = trim($entry['text']['body']);
                 $lowerMessage = strtolower($message);
 
-                if (!preg_match("/^[a-zA-Z\s]{3,}$/", $message)) {
+                if (!$message) {
                     writeLog("❌ Invalid country name: $message");
                     // Call the common handler for retry or failure
                     handleMaxAttempts(
@@ -1127,7 +1310,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 $lowerMessage = strtolower($message);
 
                 // 📧 Validate email format
-                if (!preg_match("/^[a-zA-Z\s]{3,}$/", $message)) {
+                if (!$message) {
                     writeLog("❌ Invalid email address: $message");
 
                     // ❌ Email validation failed response template
@@ -1169,7 +1352,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 $message = trim($entry['text']['body']);
 
                 // 🧪 Validate brand name
-                if (!isValidBrandName($message)) {
+                if (!$message) {
                     writeLog("❌ Invalid brand name: $message");
 
                     handleMaxAttempts(
@@ -1197,8 +1380,14 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 writeLog("🎉 Export/Import flow completed.");
 
                 // Send summary & clear session
-                postDataToVentas($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file);
-
+                postDataToVentas(
+                        $accessToken,
+                        $phone_number,
+                        $sessionData,
+                        $version,
+                        $phone_number_id,
+                        $file
+                    );
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 break;
         }
