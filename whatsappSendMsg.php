@@ -13,7 +13,7 @@ function sendWhatsAppMessage($authToken,$receiver_number, $templateName,  $versi
     $url = "https://graph.facebook.com/v22.0/642760735595014/messages?access_token=$authToken";
     $data = [
         "messaging_product" => "whatsapp",
-        "to" => "918849999677",
+        "to" => $receiver_number,
         "type" => "template",
         "template" => [
             "name" => $templateName,

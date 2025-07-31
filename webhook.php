@@ -3,7 +3,7 @@ include('whatsappSendMsg.php');
 
 
 $hubVerifyToken = 'lorence_surfaces_workflow';
-$accessToken = 'EAAR8YYnJJZAIBPFFM71FplDsNEBoZBZAfTQrZBuu6RAOXrVbTqFte8NdRlPLTB3zFOgMPVAs0nHxgasiWRsaZB1vNTWd4KOrI6Npdn7eZChaAecOn6hXZAs7ZC8kRYFJglWaSJFTsI6TboB62ixOowdVYxNVM8qTvDJZCpRQFittynWSZCtPksosl34eZBRfmbeYnhGVFk09Ss8wp6smW9zC7ioUD11PaoKtSHopvWCNI5WMgZDZD';
+$accessToken = 'EAAR8YYnJJZAIBPJzStoEqvTLgZBKL20xS9m9WElgZBbyezePaCZB73RbnaAm5QWGMBVFfBfZCISCvqhTjRJZCKm4VE0IPX5WmiwUSdjsF8KWQtteTTcYrPIAD5BdcQk5lkt9BtW5SzNlb32Sk7cUpYZBts3ZAKXKZAiqpZAOQxDsvZAcpkxZCzH0ZCujCyukgrdi0yp7LLOWkJwG16ZAf7I8eyyHAAaXiAPkNEgude7AxZCXRyQxlcZD';
 
 $logFile = __DIR__ . '/webhook_session.log';
 function writeLog($message)
@@ -112,17 +112,17 @@ function completeAndClearSession($accessToken, $phone_number, $sessionData, $ver
 
 function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file)
 {
-    $url = "http://168.231.120.235:4004/api/WhatsappAPIs/AddLead";
+    $url = "https://ventas.lorencesurfaces.com/api/WhatsappAPIs/AddLead";
 
     $data = []; // default empty
 
     if ($sessionData[$phone_number]['flow'] === 'product_inquiry') {
         $remarks = "
-    Name: {$sessionData[$phone_number]['username']} , \n
-    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} , \n
-    Pincode: {$sessionData[$phone_number]['pincode']} , \n
-    Search Preference: {$sessionData[$phone_number]['tiles_title']} , \n
-    {$sessionData[$phone_number]['tiles_title']} : {$sessionData[$phone_number]['tile_type']} , \n
+    Name: {$sessionData[$phone_number]['username']} , 
+    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} , 
+    Pincode: {$sessionData[$phone_number]['pincode']} , 
+    Search Preference: {$sessionData[$phone_number]['tiles_title']} , 
+    {$sessionData[$phone_number]['tiles_title']} : {$sessionData[$phone_number]['tile_type']} , 
     Required Area: {$sessionData[$phone_number]['squre_feet']}
 
 ";
@@ -175,9 +175,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
     } elseif ($sessionData[$phone_number]['flow'] === 'dealership_inquiry') {
         $remarks = "
     Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
-    Pincode: {$sessionData[$phone_number]['pincode']} , \n
-    Firm Name: {$sessionData[$phone_number]['companyname']} , \n
-    Current Supplier: {$sessionData[$phone_number]['supplier']} , \n
+    Pincode: {$sessionData[$phone_number]['pincode']} , 
+    Firm Name: {$sessionData[$phone_number]['companyname']} , 
+    Current Supplier: {$sessionData[$phone_number]['supplier']} , 
     Onboarding Time: {$sessionData[$phone_number]['onbordtime']} 
 ";
 
@@ -230,8 +230,8 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
         $remarks = "
     Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
     Company Name: {$sessionData[$phone_number]['companyname']} ,
-    Target Country: {$sessionData[$phone_number]['countryname']} , \n
-    Email: {$sessionData[$phone_number]['email']} , \n
+    Target Country: {$sessionData[$phone_number]['countryname']} , 
+    Email: {$sessionData[$phone_number]['email']} , 
     Associated Brand: {$sessionData[$phone_number]['brandname']}
 ";
 
@@ -247,6 +247,54 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
                 "website" => null,
                 "country" =>  $sessionData[$phone_number]['countryname'] ?? null,
+                "state" => null,
+                "city" => null,
+                "address" => null,
+                "managername" => $sessionData[$phone_number]['username'] ?? null,
+                "manageremail" => null,
+                "managercontactno" => null,
+                "managerwhatsappno" => null,
+                "instagramlink" => null,
+                "facebooklink" => null,
+                "linkedinlink" => null,
+                "leadsource" => 'Chatbot - ' . $sessionData[$phone_number]['flowtitle'] ?? 'Chatbot Inquiry',
+                "remarks" => $remarks,
+                "arrivaldate" => null,
+                "stageid" => 1,
+                "tagid" => 2,
+                "agencyid" => 1,
+                "agencyname" => null,
+                "isclient" => false,
+                "isrejected" => false,
+                "createdby" => null,
+                "createddate" => null,
+                "modifiedby" => null,
+                "modifieddate" => null,
+                "deletedat" => null,
+                "totalRecords" => 1,
+                "userid" => null,
+                "username" => null,
+                "notificationMessage" => null,
+                "googleMapLink" => null,
+                "isGenerateLead" => null,
+                "remarkUpdateDate" => null
+            ]
+        ];
+    } elseif ($sessionData[$phone_number]['flow'] === 'request_call_back') {
+        $remarks = "
+    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
+    User Name: {$sessionData[$phone_number]['username']} ,
+    Mobile Number: {$sessionData[$phone_number]['phonenumber']}
+";
+        $data = [
+            "menuName" => "New Lead Menu",
+            "leadDetails" => [
+                "companyname" => $sessionData[$phone_number]['username'] ?? 'Whatsapp',
+                "email" =>  null,
+                "contactno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "website" => null,
+                "country" =>  null,
                 "state" => null,
                 "city" => null,
                 "address" => null,
@@ -308,6 +356,8 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
             writeLog($response);
         } else {
             writeLog("Posted to Ventas (HTTP $httpCode): $response");
+            writeLog('-----------------------------------------------');
+            writeLog($response);
         }
 
         curl_close($ch);
@@ -341,53 +391,63 @@ $username = $data['entry'][0]['changes'][0]['value']['contacts'][0]['profile']['
 
 $version = "v22.0";
 $phone_number_id = 642760735595014;
+$welcomeTemplate = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "Hello 👋\nWelcome to *Lorence Vitrified* – a trusted name in premium ceramic tiles.\n\nMay I know your name?"
+    ]
+];
 
 $inqueryTemplate = [
     "messaging_product" => "whatsapp",
-    "to" => "918849999677",
+    "to" => $phone_number,
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
         "header" => [
             "type" => "text",
-            "text" => "Header"
+            "text" => ""
         ],
         "body" => [
-            "text" => "Hi $username 👋  How may I assist you today ?"
+            "text" => "Hello 👋
+Welcome to *Lorence Surfaces* – a trusted name in premium ceramic tiles.
+May I know your name?"
         ],
         "footer" => [
             "text" => ""
         ],
         "action" => [
             "button" => "Choose Inquiry",
-            "sections" => [
-                [
-                    "title" => "New Section",
-                    "rows" => [
-                        [
-                            "id" => "product_inquiry",
-                            "title" => "Product / Tiles Inquiry",
-                            "description" => "Ask about tile designs or stock availability."
-
-                        ],
-                        [
-                            "id" => "dealership_inquiry",
-                            "title" => "Dealership Inquiry",
-                            "description" => "Interested in becoming a dealer or distributor ?"
-                        ],
-                        [
-                            "id" => "exportImport_inqiry",
-                            "title" => "Export / Import Inquiry",
-                            "description" => "For queries related to international trade or logistics."
-                        ],
-                        [
-                            "id" => "request_call_back",
-                            "title" => "Request a Call Back",
-                            "description" => "Let us know and weâ€™ll get in touch shortly."
-                        ]
-                    ],
-                ]
+           "sections" => [
+    [
+        "title" => "Get in Touch",
+        "rows" => [
+            [
+                "id" => "product_inquiry",
+                "title" => "Product / Tile Inquiry",
+                "description" => "Ask about tile designs, specifications, or stock availability."
+            ],
+            [
+                "id" => "dealership_inquiry",
+                "title" => "Dealership Inquiry",
+                "description" => "Interested in becoming a dealer or distributor? Reach out to us."
+            ],
+            [
+                "id" => "export_import_inquiry",
+                "title" => "Export / Import Inquiry",
+                "description" => "Get help with international trade, shipping, or logistics."
+            ],
+            [
+                "id" => "request_call_back",
+                "title" => "Request a Callback",
+                "description" => "Leave your details and we’ll get in touch shortly."
             ]
+        ]
+    ]
+]
+
         ]
     ]
 ];
@@ -400,39 +460,39 @@ $tilesSelectionTemplate = [
         "type" => "list",
         "header" => [
             "type" => "text",
-            "text" => "Tile Selection"
+            "text" => "Tile Inquiry"
         ],
         "body" => [
-            "text" => "Thank you! Please choose how you'd like to search tiles"
+            "text" => "How would you like to explore our tile collection?"
         ],
         "footer" => [
-            "text" => ""
+            "text" => "Select an option to continue"
         ],
         "action" => [
-            "button" => "Choose tiles",
+            "button" => "Browse Options",
             "sections" => [
                 [
-                    "title" => "Search Options",
+                    "title" => "Choose a Category",
                     "rows" => [
                         [
                             "id" => "search_by_area",
                             "title" => "By Area",
-                            "description" => "Find tiles for kitchen, bathroom, outdoors, etc."
+                            "description" => "Kitchen, Bathroom, Living Room, Outdoor"
                         ],
                         [
                             "id" => "search_by_size",
                             "title" => "By Size",
-                            "description" => "Tiles by size like 600x600mm, 800x1600mm."
+                            "description" => "600x600, 800x1600, etc."
                         ],
                         [
                             "id" => "search_by_surface",
                             "title" => "By Surface",
-                            "description" => "Tiles by surface type — glossy, matte, etc."
+                            "description" => "Glossy, Matte, Wooden, etc."
                         ],
                         [
                             "id" => "search_by_look",
-                            "title" => "By Look & Feel",
-                            "description" => "Tiles by style, texture, and look."
+                            "title" => "By Look",
+                            "description" => "Marble, Stone, Rustic, etc."
                         ]
                     ]
                 ]
@@ -440,9 +500,10 @@ $tilesSelectionTemplate = [
         ]
     ]
 ];
+
 $search_by_area = [
     "messaging_product" => "whatsapp",
-    "to" => "918849999677",
+    "to" => $phone_number,
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
@@ -451,7 +512,7 @@ $search_by_area = [
             "text" => "By Area"
         ],
         "body" => [
-            "text" => "Thank you! Please choose Area"
+            "text" => "Great! 👌\nPlease select the area where you plan to use the tiles:"
         ],
         "footer" => [
             "text" => ""
@@ -462,45 +523,22 @@ $search_by_area = [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [
-                            "id" => "Living Room",
-                            "title" => "Living Room",
-                            "description" => "Living Room"
-                        ],
-                        [
-                            "id" => "Bathroom",
-                            "title" => "Bathroom",
-                            "description" => "Bathroom"
-                        ],
-                        [
-                            "id" => "40X80CM",
-                            "title" => "Bedroom",
-                            "description" => "Bedroom"
-                        ],
-                        [
-                            "id" => "Kitchen",
-                            "title" => "Kitchen",
-                            "description" => "Kitchen"
-                        ],
-                        [
-                            "id" => "Balcony",
-                            "title" => "Balcony",
-                            "description" => "Balcony"
-                        ],
-                        [
-                            "id" => "Outdoor",
-                            "title" => "Outdoor",
-                            "description" => "Outdoor"
-                        ]
-                    ],
+                        [ "id" => "Living Room", "title" => "Living Room", "description" => "Living Room" ],
+                        [ "id" => "Bathroom", "title" => "Bathroom", "description" => "Bathroom" ],
+                        [ "id" => "Bedroom", "title" => "Bedroom", "description" => "Bedroom" ],
+                        [ "id" => "Kitchen", "title" => "Kitchen", "description" => "Kitchen" ],
+                        [ "id" => "Balcony", "title" => "Balcony", "description" => "Balcony" ],
+                        [ "id" => "Outdoor", "title" => "Outdoor", "description" => "Outdoor" ]
+                    ]
                 ]
             ]
         ]
     ]
 ];
+
 $search_by_size = [
     "messaging_product" => "whatsapp",
-    "to" => "918849999677",
+    "to" => $phone_number,
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
@@ -509,7 +547,7 @@ $search_by_size = [
             "text" => "By Size"
         ],
         "body" => [
-            "text" => "Thank you! Please choose Size"
+            "text" => "Awesome! 📏\nChoose your preferred tile size below:"
         ],
         "footer" => [
             "text" => ""
@@ -520,45 +558,22 @@ $search_by_size = [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [
-                            "id" => "20X120CM",
-                            "title" => "20X120 CM",
-                            "description" => "20X120 CM"
-                        ],
-                        [
-                            "id" => "30X60CM",
-                            "title" => "30X60 CM",
-                            "description" => "30X60 CM"
-                        ],
-                        [
-                            "id" => "40X80CM",
-                            "title" => "40X80 CM",
-                            "description" => "40X80 CM"
-                        ],
-                        [
-                            "id" => "60X120CM",
-                            "title" => "60X120 CM",
-                            "description" => "60X120 CM"
-                        ],
-                        [
-                            "id" => "60X60CM",
-                            "title" => "60X60 CM",
-                            "description" => "60X60 CM"
-                        ],
-                        [
-                            "id" => "80X80CM",
-                            "title" => "80X80 CM",
-                            "description" => "80X80 CM "
-                        ]
-                    ],
+                        [ "id" => "20X120CM", "title" => "20X120 CM", "description" => "20X120 CM" ],
+                        [ "id" => "30X60CM", "title" => "30X60 CM", "description" => "30X60 CM" ],
+                        [ "id" => "40X80CM", "title" => "40X80 CM", "description" => "40X80 CM" ],
+                        [ "id" => "60X120CM", "title" => "60X120 CM", "description" => "60X120 CM" ],
+                        [ "id" => "60X60CM", "title" => "60X60 CM", "description" => "60X60 CM" ],
+                        [ "id" => "80X80CM", "title" => "80X80 CM", "description" => "80X80 CM" ]
+                    ]
                 ]
             ]
         ]
     ]
 ];
+
 $search_by_surface = [
     "messaging_product" => "whatsapp",
-    "to" => "918849999677",
+    "to" => $phone_number,
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
@@ -567,7 +582,7 @@ $search_by_surface = [
             "text" => "By Surface"
         ],
         "body" => [
-            "text" => "Thank you! Please choose Surface"
+            "text" => "Got it! ✨\nWhat type of tile finish are you looking for?"
         ],
         "footer" => [
             "text" => ""
@@ -578,143 +593,93 @@ $search_by_surface = [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [
-                            "id" => "glit",
-                            "title" => "Glit",
-                            "description" => "Glit"
-                        ],
-                        [
-                            "id" => "glossy",
-                            "title" => "Glossy",
-                            "description" => "Glossy"
-                        ],
-                        [
-                            "id" => "matt",
-                            "title" => "Matt",
-                            "description" => "Matt"
-                        ],
-                        [
-                            "id" => "matte_x",
-                            "title" => "Matte-X",
-                            "description" => "Matte-X "
-                        ],
-                        [
-                            "id" => "shine_structured",
-                            "title" => "Shine Structured",
-                            "description" => "Shine Structured "
-                        ],
-                        [
-                            "id" => "structured",
-                            "title" => "Structured",
-                            "description" => "Structured "
-                        ],
-                        [
-                            "id" => "textured_matt",
-                            "title" => "Textured Matt",
-                            "description" => "Textured Matt "
-                        ]
-                    ],
+                        [ "id" => "glit", "title" => "Glit", "description" => "Glit" ],
+                        [ "id" => "glossy", "title" => "Glossy", "description" => "Glossy" ],
+                        [ "id" => "matt", "title" => "Matt", "description" => "Matt" ],
+                        [ "id" => "matte_x", "title" => "Matte-X", "description" => "Matte-X" ],
+                        [ "id" => "shine_structured", "title" => "Shine Structured", "description" => "Shine Structured" ],
+                        [ "id" => "structured", "title" => "Structured", "description" => "Structured" ],
+                        [ "id" => "textured_matt", "title" => "Textured Matt", "description" => "Textured Matt" ]
+                    ]
                 ]
             ]
         ]
     ]
 ];
+
 $search_by_look = [
     "messaging_product" => "whatsapp",
-    "to" => "918849999677",
+    "to" => $phone_number,
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
         "header" => [
             "type" => "text",
-            "text" => "Look & feel"
+            "text" => "Look & Feel"
         ],
         "body" => [
-            "text" => "Thank you! Please choose how you'd like to search tiles"
+            "text" => "Perfect! 🎨\nSelect the style or look you’d like for your tiles:"
         ],
         "footer" => [
             "text" => ""
         ],
         "action" => [
-            "button" => "Choose tiles",
+            "button" => "Choose Style",
             "sections" => [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [
-                            "id" => "Concrete",
-                            "title" => "Concrete",
-                            "description" => "Concrete"
-                        ],
-                        [
-                            "id" => "Decorative",
-                            "title" => "Decorative",
-                            "description" => "Decorative"
-                        ],
-                        [
-                            "id" => "Marble",
-                            "title" => "Marble",
-                            "description" => "Marble"
-                        ],
-                        [
-                            "id" => "Rustic",
-                            "title" => "Rustic ",
-                            "description" => "Rustic "
-                        ],
-                        [
-                            "id" => "Solid",
-                            "title" => "Solid ",
-                            "description" => "Solid "
-                        ],
-                        [
-                            "id" => "Stone",
-                            "title" => "Stone ",
-                            "description" => "Stone "
-                        ],
-                        [
-                            "id" => "Wood",
-                            "title" => "Wood ",
-                            "description" => "Wood "
-                        ]
-                    ],
+                        [ "id" => "Concrete", "title" => "Concrete", "description" => "Concrete" ],
+                        [ "id" => "Decorative", "title" => "Decorative", "description" => "Decorative" ],
+                        [ "id" => "Marble", "title" => "Marble", "description" => "Marble" ],
+                        [ "id" => "Rustic", "title" => "Rustic", "description" => "Rustic" ],
+                        [ "id" => "Solid", "title" => "Solid", "description" => "Solid" ],
+                        [ "id" => "Stone", "title" => "Stone", "description" => "Stone" ],
+                        [ "id" => "Wood", "title" => "Wood", "description" => "Wood" ]
+                    ]
                 ]
             ]
         ]
     ]
 ];
+
 $ask_squarefeet = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Got it! 🧮\n\nPlease tell us how much you require (in square feet):"
+        "body" => "Got it! 🧮\n\nPlease enter the required area (in square feet):"
     ]
 ];
+
 $thankyou = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Thank you! 🙌\n\nOne of our team members will call you shortly to assist further.\nFeel free to explore more: https://lorencesurfaces.com"
+        "body" => "Thank you! 🙌\nOne of our experts will contact you shortly.\nExplore more: https://lorencesurfaces.com"
     ]
 ];
+
 // Delarship templates
 $askCompanyName = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Thank you! 🙏\n\nCould you please share your Firm or Company Name with us?"
+        "body" => "Thank you! 🙏\nCould you please share your *Firm or Company Name*?"
     ]
 ];
+
 $askOtherSupplier = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Are you currently sourcing from any other supplier?\nIf yes, please mention the name – this helps us serve you better. 😊"
+        "body" => "Are you sourcing from any other tile supplier?\nPlease mention the name if yes. 😊"
     ]
 ];
+
 $askOnboardTiming = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -726,73 +691,65 @@ $askOnboardTiming = [
         ],
         "action" => [
             "buttons" => [
-                [
-                    "type" => "reply",
-                    "reply" => [
-                        "id" => "onboard_immediate",
-                        "title" => "1️⃣ Immediate"
-                    ]
-                ],
-                [
-                    "type" => "reply",
-                    "reply" => [
-                        "id" => "onboard_later",
-                        "title" => "2️⃣ Later"
-                    ]
-                ]
+                [ "type" => "reply", "reply" => [ "id" => "onboard_immediate", "title" => "1️⃣ Immediate" ] ],
+                [ "type" => "reply", "reply" => [ "id" => "onboard_later", "title" => "2️⃣ Later" ] ]
             ]
         ]
     ]
 ];
+
 $dealershipThankYou = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Thank you for your interest in partnering with us! 🙏\n\nOur support team will call you shortly.\n\nMeanwhile, check out our collection:\n🌐 https://lorencesurfaces.com"
+        "body" => "Thanks for your interest! 🙌\nOur team will contact you soon.\nMeanwhile, explore: https://lorencesurfaces.com"
     ]
 ];
+
 // Export/Import templates
 $askCountry = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Awesome, thanks! 🌍 *Which country* are you looking to *import* from or *export* to?"
+        "body" => "Awesome, thanks! 🌍\nWhich country are you importing from or exporting to?"
     ]
 ];
+
 $askEmail = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Got it! could you please share your email address? 📧"
+        "body" => "Could you please share your email address? 📧"
     ]
 ];
+
 $askBrands = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "To help us serve you better, are you *currently working* with any *specific tile brands?* Let us know! 🏷️"
+        "body" => "Are you currently working with any specific tile brands? Let us know! 🏷️"
     ]
 ];
+
 $exportThankYou = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Thank you so much for sharing the details! 🙏 Our export team will be in touch with you shortly.\n\nIn the meantime, feel free to explore our global-ready tile collection:\n🌐 https://lorencesurfaces.com"
+        "body" => "Thanks for sharing the details! 🙏\nOur export team will contact you soon.\nExplore our collection:\nhttps://lorencesurfaces.com"
     ]
 ];
+
 // Error messages
 $errorMessage = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "❌ Please enter a valid 6-digit pincode."
-    ]
+    "text" => [ "body" => "❌ Please enter a valid 6-digit pincode." ]
 ];
 
 // Validation template
@@ -800,76 +757,64 @@ $invalid_option_try_again = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "❌ Sorry, we couldn't process your selection. Please try again by selecting a valid option from the list."
-    ]
+    "text" => [ "body" => "❌ Invalid option. Please choose from the list above." ]
 ];
+
 $invalid_response_prompt = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "⚠️ Invalid response. Please select an option from the list shown."
-    ]
+    "text" => [ "body" => "⚠️ Please select from the provided options instead of typing." ]
 ];
-$maximum_attempts_reached = [
-    "messaging_product" => "whatsapp",
-    "to" => $phone_number,
-    "type" => "text",
-    "text" => [
-        "body" => "🚫 You have reached the maximum number of attempts. Thank you for your time."
-    ]
-];
+
 $invalidSquareFeetMessage = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "❗ Please enter valid square feet (e.g., 500 or 500*500)."
-    ]
+    "text" => [ "body" => "❗ Please enter a valid square feet value (e.g., 500 or 10x10)." ]
 ];
+
 $invalid_interactive_response = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "⚠️ Invalid response. Please tap one of the buttons provided to proceed. Avoid typing your answer."
-    ]
+    "text" => [ "body" => "⚠️ Please tap one of the buttons to continue." ]
 ];
+
 $invalid_companyname_response = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "⚠️ The *company name* you entered is *invalid*. Please enter a *valid Compny name*."
-    ]
+    "text" => [ "body" => "⚠️ That doesn’t look like a valid company name. Please try again." ]
 ];
+
 $retryMessageCountry = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "*❌ Invalid country name.*\nPlease enter a valid country name like *India*, *USA*, etc."
-    ]
+    "text" => [ "body" => "❌ Please enter a valid country name like *India*, *USA*, etc." ]
 ];
+
 $retryMessageEmail = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "*❌ Invalid email address.*\nPlease enter a valid email like *example@email.com*"
-    ]
+    "text" => [ "body" => "❌ Please enter a valid email like *you@example.com*" ]
 ];
+
 $retryMessageBrand = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [
-        "body" => "*❌ Invalid brand name.*\nPlease enter a valid brand name ."
-    ]
+    "text" => [ "body" => "❌ Please enter a valid brand name." ]
 ];
 
-
+$maximum_attempts_reached = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [ "body" => "🚫 You’ve reached the maximum number of attempts. Thank you for your time!" ]
+];
 
 
 
@@ -886,7 +831,7 @@ $sessionData = json_decode(file_get_contents($file), true);
 if (isset($entry['text']['body'])) {
     if (!isset($sessionData[$phone_number])) {
         writeLog("New user detected. Sending inquiry list.");
-        sendWhatsAppTextMessage($accessToken, $phone_number, $inqueryTemplate, $version, $phone_number_id);
+        sendWhatsAppTextMessage($accessToken, $phone_number, $welcomeTemplate, $version, $phone_number_id);
 
 
         // $sessionData[$phone_number] = ['stage' => 0, 'flow' => ''];
@@ -925,7 +870,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
     if ($flow === "product_inquiry") {
         switch ($stage) {
             case 1:
-                sendWhatsAppMessage($accessToken, "918849999677", "ask_pincode", $version, $phone_number_id);
+                sendWhatsAppMessage($accessToken, $phone_number, "ask_pincode", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
                 $message = strtolower(trim($entry['text']['body']));
@@ -1081,7 +1026,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
     } elseif ($flow === 'dealership_inquiry') {
         switch ($stage) {
             case 1:
-                sendWhatsAppMessage($accessToken, "918849999677", "ask_pincode", $version, $phone_number_id);
+                sendWhatsAppMessage($accessToken, $phone_number, "ask_pincode", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
                 $message = $entry['text']['body'];
@@ -1207,14 +1152,14 @@ if (!empty($sessionData[$phone_number]['flow'])) {
 
                     $sessionData[$phone_number]['stage'] = 6;
                     $sessionData[$phone_number]['invalid_attempts'] = 0;
-                    //   postDataToVentas(
-                    //     $accessToken,
-                    //     $phone_number,
-                    //     $sessionData,
-                    //     $version,
-                    //     $phone_number_id,
-                    //     $file
-                    // );
+                    postDataToVentas(
+                        $accessToken,
+                        $phone_number,
+                        $sessionData,
+                        $version,
+                        $phone_number_id,
+                        $file
+                    );
                     $sessionData = [];
                     file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                     writeLog("All session data cleared.");
@@ -1393,14 +1338,14 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 writeLog("🎉 Export/Import flow completed.");
 
                 // Send summary & clear session
-                // postDataToVentas(
-                //         $accessToken,
-                //         $phone_number,
-                //         $sessionData,
-                //         $version,
-                //         $phone_number_id,
-                //         $file
-                //     );
+                postDataToVentas(
+                    $accessToken,
+                    $phone_number,
+                    $sessionData,
+                    $version,
+                    $phone_number_id,
+                    $file
+                );
                 $sessionData = []; // 👈 this clears everything
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 writeLog("All session data cleared.");
@@ -1409,7 +1354,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
     } elseif ($flow == 'request_call_back') {
         switch ($stage) {
             case 1:
-                sendWhatsAppMessage($accessToken, "918849999677", "requestcallbackthankyou ", $version, $phone_number_id);
+                sendWhatsAppMessage($accessToken, $phone_number, "requestcallbackthankyou ", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
                 $message = strtolower(trim($entry['text']['body']));
                 writeLog("message geetsed last Request");
@@ -1417,7 +1362,14 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 $sessionData[$phone_number]['stage'] = 2;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 1";
-
+                postDataToVentas(
+                    $accessToken,
+                    $phone_number,
+                    $sessionData,
+                    $version,
+                    $phone_number_id,
+                    $file
+                );
 
                 // Clear entire session data
                 $sessionData = []; // 👈 this clears everything
