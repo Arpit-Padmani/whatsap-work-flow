@@ -68,7 +68,7 @@ $phone_number_id = 642760735595014;
 
 $inqueryTemplate = [
     "messaging_product" => "whatsapp",
-    "to" => "917096305498",
+    "to" => "918849999677",
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
@@ -167,7 +167,7 @@ $tilesSelectionTemplate = [
 
 $search_by_area = [
     "messaging_product" => "whatsapp",
-    "to" => "917096305498",
+    "to" => "918849999677",
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
@@ -226,7 +226,7 @@ $search_by_area = [
 
 $search_by_size = [
     "messaging_product" => "whatsapp",
-    "to" => "917096305498",
+    "to" => "918849999677",
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
@@ -285,7 +285,7 @@ $search_by_size = [
 
 $search_by_surface = [
     "messaging_product" => "whatsapp",
-    "to" => "917096305498",
+    "to" => "918849999677",
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
@@ -349,7 +349,7 @@ $search_by_surface = [
 
 $search_by_look = [
     "messaging_product" => "whatsapp",
-    "to" => "917096305498",
+    "to" => "918849999677",
     "type" => "interactive",
     "interactive" => [
         "type" => "list",
@@ -585,7 +585,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
     if ($flow === "product_inquiry") {
         switch ($stage) {
             case 1:
-                sendWhatsAppMessage($accessToken, "917096305498", "ask_pincode", $version, $phone_number_id);
+                sendWhatsAppMessage($accessToken, "918849999677", "ask_pincode", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
                 $message = strtolower(trim($entry['text']['body']));
@@ -730,7 +730,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
     elseif($flow === 'dealership_inquiry'){
         switch ($stage) {
             case 1:
-                sendWhatsAppMessage($accessToken, "917096305498", "ask_pincode", $version, $phone_number_id);
+                sendWhatsAppMessage($accessToken, "918849999677", "ask_pincode", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
                 $message = strtolower(trim($entry['text']['body']));
@@ -879,7 +879,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
     elseif($flow== 'request_call_back'){
         switch($stage){
             case 1:
-                sendWhatsAppMessage($accessToken, "917096305498", "requestcallbackthankyou ", $version, $phone_number_id);
+                sendWhatsAppMessage($accessToken, "918849999677", "requestcallbackthankyou ", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
                 $message = strtolower(trim($entry['text']['body']));
