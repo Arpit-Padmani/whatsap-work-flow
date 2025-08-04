@@ -1,10 +1,21 @@
+<?php
 
 $welcomeTemplate = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Hello 👋\nWelcome to *Lorence Vitrified* – a trusted name in premium ceramic tiles.\n\nMay I know your name?"
+        "body" => "Hi 👋 Welcome to *Lorence Vitrified* Official Account!"
+    ]
+];
+$askusername = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "It's great to have you here! Before we get started, may I know your name, please?
+
+(E.g. Ram Sharma)"
     ]
 ];
 
@@ -19,9 +30,7 @@ $inqueryTemplate = [
             "text" => ""
         ],
         "body" => [
-            "text" => "Hello 👋
-Welcome to *Lorence Surfaces* – a trusted name in premium ceramic tiles.
-May I know your name?"
+            "text" => "Dear {{user_name}},\n\nHow may I assist you today? Please choose from the following options 👇"
         ],
         "footer" => [
             "text" => ""
@@ -34,23 +43,23 @@ May I know your name?"
         "rows" => [
             [
                 "id" => "product_inquiry",
-                "title" => "Product / Tile Inquiry",
-                "description" => "Ask about tile designs, specifications, or stock availability."
+                "title" => "Product Enquiry 🛍️",
+                "description" => ""
             ],
             [
                 "id" => "dealership_inquiry",
-                "title" => "Dealership Inquiry",
-                "description" => "Interested in becoming a dealer or distributor? Reach out to us."
+                "title" => "Dealership Enquiry 🏢",
+                "description" => ""
             ],
             [
-                "id" => "export_import_inquiry",
-                "title" => "Export / Import Inquiry",
-                "description" => "Get help with international trade, shipping, or logistics."
+                "id" => "exportImport_inqiry",
+                "title" => "Export Enquiry 🌎",
+                "description" => ""
             ],
             [
                 "id" => "request_call_back",
-                "title" => "Request a Callback",
-                "description" => "Leave your details and we’ll get in touch shortly."
+                "title" => "Request a Callback 📞",
+                "description" => ""
             ]
         ]
     ]
@@ -68,13 +77,13 @@ $tilesSelectionTemplate = [
         "type" => "list",
         "header" => [
             "type" => "text",
-            "text" => "Tile Inquiry"
+            "text" => ""
         ],
         "body" => [
-            "text" => "How would you like to explore our tile collection?"
+            "text" => "Please choose how you'd like to browse our products 👇"
         ],
         "footer" => [
-            "text" => "Select an option to continue"
+            "text" => ""
         ],
         "action" => [
             "button" => "Browse Options",
@@ -85,22 +94,22 @@ $tilesSelectionTemplate = [
                         [
                             "id" => "search_by_area",
                             "title" => "By Area",
-                            "description" => "Kitchen, Bathroom, Living Room, Outdoor"
+                            "description" => ""
                         ],
                         [
                             "id" => "search_by_size",
                             "title" => "By Size",
-                            "description" => "600x600, 800x1600, etc."
+                            "description" => ""
                         ],
                         [
                             "id" => "search_by_surface",
                             "title" => "By Surface",
-                            "description" => "Glossy, Matte, Wooden, etc."
+                            "description" => ""
                         ],
                         [
                             "id" => "search_by_look",
                             "title" => "By Look",
-                            "description" => "Marble, Stone, Rustic, etc."
+                            "description" => ""
                         ]
                     ]
                 ]
@@ -237,13 +246,13 @@ $search_by_look = [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [ "id" => "Concrete", "title" => "Concrete", "description" => "Concrete" ],
-                        [ "id" => "Decorative", "title" => "Decorative", "description" => "Decorative" ],
-                        [ "id" => "Marble", "title" => "Marble", "description" => "Marble" ],
-                        [ "id" => "Rustic", "title" => "Rustic", "description" => "Rustic" ],
-                        [ "id" => "Solid", "title" => "Solid", "description" => "Solid" ],
-                        [ "id" => "Stone", "title" => "Stone", "description" => "Stone" ],
-                        [ "id" => "Wood", "title" => "Wood", "description" => "Wood" ]
+                        [ "id" => "Concrete", "title" => "Concrete", "description" => "" ],
+                        [ "id" => "Decorative", "title" => "Decorative", "description" => "" ],
+                        [ "id" => "Marble", "title" => "Marble", "description" => "" ],
+                        [ "id" => "Rustic", "title" => "Rustic", "description" => "" ],
+                        [ "id" => "Solid", "title" => "Solid", "description" => "" ],
+                        [ "id" => "Stone", "title" => "Stone", "description" => "" ],
+                        [ "id" => "Wood", "title" => "Wood", "description" => "" ]
                     ]
                 ]
             ]
@@ -256,7 +265,7 @@ $ask_squarefeet = [
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Got it! 🧮\n\nPlease enter the required area (in square feet):"
+        "body" => "Got it! \n\nPlease enter the required area (in square feet):"
     ]
 ];
 
@@ -372,7 +381,7 @@ $invalid_response_prompt = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
     "type" => "text",
-    "text" => [ "body" => "⚠️ Please select from the provided options instead of typing." ]
+    "text" => [ "body" => "⚠️ Please select from the provided options." ]
 ];
 
 $invalidSquareFeetMessage = [
@@ -424,3 +433,11 @@ $maximum_attempts_reached = [
     "text" => [ "body" => "🚫 You’ve reached the maximum number of attempts. Thank you for your time!" ]
 ];
 
+$invalid_option_template = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "❌ Invalid option. Please select from the list below 👇"
+    ]
+];
