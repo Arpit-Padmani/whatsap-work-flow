@@ -54,7 +54,8 @@ function handleMaxAttempts(&$sessionData, $phone_number, $maxAttempts, $failureT
 
     if ($sessionData[$phone_number]['invalid_attempts'] >= $maxAttempts) {
         sendWhatsAppTextMessage($accessToken, $phone_number, $failureTemplate, $version, $phone_number_id);
-        unset($sessionData[$phone_number]); // Clear session on failure
+        unset($sessionData[$phone_number]);
+        return 0; // Clear session on failure
     } else {
         sendWhatsAppTextMessage($accessToken, $phone_number, $retryTemplate, $version, $phone_number_id);
         $sessionData[$phone_number]['stage'] = $stage; // Retry same stage
@@ -365,45 +366,64 @@ function isValidBrandName($brandName)
 }
 
 // Reusable function to handle wrong interactive input
+
+
 function handleWrongInteractiveReply($stage, $sessionData, $phone_number, $accessToken, $version, $phone_number_id, $file) {
     $invalid_prompt_templates = [
-    2 => [
-        "messaging_product" => "whatsapp",
-        "to" => $phone_number,
-        "type" => "text",
-        "text" => [
-            "body" => "📍 Please enter your 6-digit pincode."
+        2 => [
+            "messaging_product" => "whatsapp",
+            "to" => $phone_number,
+            "type" => "text",
+            "text" => [
+                "body" => "📍 Please enter your 6-digit pincode."
+            ]
+        ],
+        4 => [
+            "messaging_product" => "whatsapp",
+            "to" => $phone_number,
+            "type" => "text",
+            "text" => [
+                "body" => "📌 Please enter the tile value (e.g., Glossy, Matte)."
+            ]
+        ],
+        5 => [
+            "messaging_product" => "whatsapp",
+            "to" => $phone_number,
+            "type" => "text",
+            "text" => [
+                "body" => "📐 Please enter the area in square feet (e.g., 400)."
+            ]
         ]
-    ],
-    4 => [
-        "messaging_product" => "whatsapp",
-        "to" => $phone_number,
-        "type" => "text",
-        "text" => [
-            "body" => "📌 Please enter the tile value (e.g., Glossy, Matte)."
-        ]
-    ],
-    5 => [
-        "messaging_product" => "whatsapp",
-        "to" => $phone_number,
-        "type" => "text",
-        "text" => [
-            "body" => "📐 Please enter the area in square feet (e.g., 400)."
-        ]
-    ]
-];
-
-
-    $error_message = "❌ Invalid input. Please type your response as requested.";
-    $repeat_prompt = $invalid_prompt_templates[$stage] ?? "❗ Please enter a valid response.";
-
-    sendWhatsAppTextMessage($accessToken, $phone_number, $error_message, $version, $phone_number_id);
-    sendWhatsAppTextMessage($accessToken, $phone_number, $repeat_prompt, $version, $phone_number_id);
+    ];
 
     $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
 
     if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
-        handleMaxAttempts($sessionData, $phone_number, 2, $GLOBALS['maximum_attempts_reached'], $GLOBALS['invalid_response_prompt'], $stage, $accessToken, $version, $phone_number_id);
+        handleMaxAttempts(
+            $sessionData,
+            $phone_number,
+            2,
+            $GLOBALS['maximum_attempts_reached'],
+            $GLOBALS['invalid_response_prompt'],
+            $stage,
+            $accessToken,
+            $version,
+            $phone_number_id
+        );
+    } else {
+        // Only send the error and repeat prompt if max attempts not yet reached
+        $error_message = "❌ Invalid input. Please type your response as requested.";
+        $repeat_prompt = $invalid_prompt_templates[$stage] ?? [
+            "messaging_product" => "whatsapp",
+            "to" => $phone_number,
+            "type" => "text",
+            "text" => [
+                "body" => "❗ Please enter a valid response."
+            ]
+        ];
+
+        sendWhatsAppTextMessage($accessToken, $phone_number, $error_message, $version, $phone_number_id);
+        sendWhatsAppTextMessage($accessToken, $phone_number, $repeat_prompt, $version, $phone_number_id);
     }
 
     file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
@@ -411,27 +431,26 @@ function handleWrongInteractiveReply($stage, $sessionData, $phone_number, $acces
 }
 
 
-
-
 function resendLastTemplate($accessToken, $phone_number, $version, $phone_number_id, $last_template_sent) {
-    global $search_by_area, $search_by_size, $search_by_surface, $search_by_look,$tilesSelectionTemplate;
+    global $search_by_area, $search_by_size, $search_by_surface, $search_by_look, $tilesSelectionTemplate;
 
-    switch ($last_template_sent) {
-        case 'search_by_area':
-            sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_area, $version, $phone_number_id);
-            break;
-        case 'search_by_size':
-            sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_size, $version, $phone_number_id);
-            break;
-        case 'search_by_surface':
-            sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_surface, $version, $phone_number_id);
-            break;
-        case 'search_by_look':
-            sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_look, $version, $phone_number_id);
-            break;
-        default:
-            // fallback to initial category
-            sendWhatsAppTextMessage($accessToken, $phone_number, $tilesSelectionTemplate, $version, $phone_number_id);
-            break;
+    $templateMap = [
+        'search_by_area' => $search_by_area,
+        'search_by_size' => $search_by_size,
+        'search_by_surface' => $search_by_surface,
+        'search_by_look' => $search_by_look
+    ];
+
+    if (isset($templateMap[$last_template_sent])) {
+        $template = $templateMap[$last_template_sent];
+
+        // Decide which function to use based on data type
+        if (is_array($template)) {
+            sendWhatsAppTextMessage($accessToken, $phone_number, $template, $version, $phone_number_id);
+        } else {
+            sendWhatsAppMessage($accessToken, $phone_number, $template, $version, $phone_number_id);
+        }
+    } else {
+        sendWhatsAppTextMessage($accessToken, $phone_number, $tilesSelectionTemplate, $version, $phone_number_id);
     }
 }

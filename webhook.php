@@ -3,7 +3,7 @@ include('whatsappSendMsg.php');
 require_once 'helpers.php';
 
 $hubVerifyToken = 'lorence_surfaces_workflow';
-$accessToken = 'EAAR8YYnJJZAIBPCYqTYvpy4A0PNieFbgRrPEsMuZAGnPTZAPGZA5GovSdfltxoFauLRMWJYfEZAvaSAlW2p3YUpewNHnZBFiF5B8Fu9ium5RQVmkedvk6z2jjzXQCRHiqLnRnQZAznV4ZBvrYupXtSv23S0VlQNRhTbqPmsqx8ZBAULkBUJUjRhtR9nj0Rz5RRQZBxNZC0WxiOgA5zaiJUBdvEjHt9WJDbegPrrH4vgquoIygZDZD';
+$accessToken = 'EAAR8YYnJJZAIBPL9RwVPSKJzwdvzfkZCLwJR5ZBIrrhAaMMzxNBZB9dW6ZALZA3Bj35TcQRpJYgrQHXwjZBu5sFpk0A4YQTYEvxF15kwdfyIhTdJTpq2vMBM7SP6DnM3xrhSmLB05uycLGAoUonFBJ9RkSzPAnWBer81dRKNwu7LZByGhLg6SSdzUbqJtKMQdL11qEfYg6balMWmxMZCx258tToxfLRkt0FYwP125kJ5EkAZDZD';
 
 $logFile = __DIR__ . '/webhook_session.log';
 
@@ -114,7 +114,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 sendWhatsAppMessage($accessToken, $phone_number, "ask_pincode", $version, $phone_number_id);
                 writeLog("Message senddned successfully");
 
-                $message = strtolower(trim($entry['text']['body']));
+                $message = strtolower(trim($entry['text']['body'] ?? ''));
                 writeLog("message getted after pincode");
 
                 $sessionData[$phone_number]['stage'] = 2;
@@ -171,6 +171,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 }
 
                 break;
+
             case 3:
                 writeLog("Stage 3: Processing tile selection...");
 
@@ -195,6 +196,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                         sendWhatsAppTextMessage($accessToken, $phone_number, $templateMap[$tiles_id], $version, $phone_number_id);
                         $sessionData[$phone_number]['stage'] = 4;
                         $sessionData[$phone_number]['invalid_attempts'] = 0;
+                        $sessionData[$phone_number]['last_template_sent'] = $tiles_id;
                     } else {
                         handleMaxAttempts($sessionData, $phone_number, 2, $maximum_attempts_reached, $invalid_response_prompt, 3, $accessToken, $version, $phone_number_id);
                     }
@@ -204,54 +206,125 @@ if (!empty($sessionData[$phone_number]['flow'])) {
 
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 break;
-
-
             case 4:
-    writeLog("Stage 4: Selected Look and Feel:");
+                writeLog("Stage 4: Look and Feel Selection");
+                if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
+                    handleMaxAttempts(
+                        $sessionData,
+                        $phone_number,
+                        2,
+                        $maximum_attempts_reached,
+                        $invalid_response_prompt,
+                        4,
+                        $accessToken,
+                        $version,
+                        $phone_number_id
+                    );
+                    break;
+                }
+                if (isset($entry['interactive']) && isset($entry['interactive']['list_reply'])) {
+                    $look_value = $entry['interactive']['list_reply']['title'];
+                    $look_id = $entry['interactive']['list_reply']['id'];
 
-    if (isset($entry['interactive']) && isset($entry['interactive']['list_reply'])) {
-        $look_value = $entry['interactive']['list_reply']['title'];
-        $look_id = $entry['interactive']['list_reply']['id'];
+                    $valid_look_ids = ['Concrete', 'Decorative', 'Marble', 'Rustic', 'Solid', 'Stone', 'Wood', 'glit', 'glossy', 'matt', 'matte_x', 'shine_structured', 'structured', 'textured_matt', '20X120CM', '30X60CM', '40X80CM', '60X120CM', '60X60CM', '80X80CM', 'Living Room', 'Bathroom', 'Bedroom', 'Kitchen', 'Balcony', 'Outdoor'];
 
-        $valid_look_ids = ['Concrete', 'Decorative', 'Marble', 'Rustic', 'Solid', 'Stone', 'Wood'];
+                    if (in_array($look_id, $valid_look_ids)) {
+                        writeLog("Valid look selected: $look_value");
 
-        if (in_array($look_id, $valid_look_ids)) {
-            writeLog("Valid look selected: $look_value");
+                        $sessionData[$phone_number]['tile_type'] = $look_value;
+                        $sessionData[$phone_number]['stage'] = 5;
+                        $sessionData[$phone_number]['invalid_attempts'] = 0;
 
-            $sessionData[$phone_number]['tile_type'] = $look_value;
-            sendWhatsAppTextMessage($accessToken, $phone_number, $ask_squarefeet, $version, $phone_number_id);
+                        sendWhatsAppTextMessage($accessToken, $phone_number, $ask_squarefeet, $version, $phone_number_id);
+                    } else {
+                        writeLog("Invalid look id received: $look_id");
 
-            $sessionData[$phone_number]['stage'] = 5;
-            $sessionData[$phone_number]['invalid_attempts'] = 0;
-        } else {
-            writeLog("Stage 4: Invalid look id: $look_id");
+                        // Send invalid option message and resend appropriate list
+                        sendWhatsAppTextMessage($accessToken, $phone_number, $invalid_option_template, $version, $phone_number_id);
 
-            sendWhatsAppTextMessage($accessToken, $phone_number, $invalid_option_template, $version, $phone_number_id);
-            resendLastTemplate($accessToken, $phone_number, $version, $phone_number_id, $sessionData[$phone_number]['last_template_sent']);
+                        $last_menu = $sessionData[$phone_number]['last_template_sent'] ?? 'search_by_look';
 
-            $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
+                        switch ($last_menu) {
+                            case 'search_by_area':
+                                sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_area, $version, $phone_number_id);
+                                break;
+                            case 'search_by_size':
+                                sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_size, $version, $phone_number_id);
+                                break;
+                            case 'search_by_surface':
+                                sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_surface, $version, $phone_number_id);
+                                break;
+                            case 'search_by_look':
+                                sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_look, $version, $phone_number_id);
+                                break;
+                            default:
+                                sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_look, $version, $phone_number_id);
+                                break;
+                        }
 
-            if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
-                handleMaxAttempts($sessionData, $phone_number, 2, $maximum_attempts_reached, $invalid_response_prompt, 4, $accessToken, $version, $phone_number_id);
-            }
-        }
-    } else {
-        writeLog("Stage 4: No list_reply received, resending last template.");
+                        $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
 
-        sendWhatsAppTextMessage($accessToken, $phone_number, $invalid_option_template, $version, $phone_number_id);
-        resendLastTemplate($accessToken, $phone_number, $version, $phone_number_id, $sessionData[$phone_number]['last_template_sent']);
+                        // if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
+                        //     handleMaxAttempts(
+                        //         $sessionData,
+                        //         $phone_number,
+                        //         2,
+                        //         $maximum_attempts_reached,
+                        //         $invalid_response_prompt,
+                        //         4,
+                        //         $accessToken,
+                        //         $version,
+                        //         $phone_number_id
+                        //     );
+                        // }
+                    }
+                } else {
+                    writeLog("No list_reply found. Resending previous menu.");
 
-        $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
+                    // No reply — resend the last known menu
+                    sendWhatsAppTextMessage($accessToken, $phone_number, "❌ Please choose a valid option from the list below 👇", $version, $phone_number_id);
 
-        if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
-            handleMaxAttempts($sessionData, $phone_number, 2, $maximum_attempts_reached, $invalid_response_prompt, 4, $accessToken, $version, $phone_number_id);
-        }
-    }
+                    $last_menu = $sessionData[$phone_number]['last_menu'] ?? 'search_by_look';
 
-    file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
-    break;
+                    switch ($last_menu) {
+                        case 'search_by_area':
+                            sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_area, $version, $phone_number_id);
+                            break;
+                        case 'search_by_size':
+                            sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_size, $version, $phone_number_id);
+                            break;
+                        case 'search_by_surface':
+                            sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_surface, $version, $phone_number_id);
+                            break;
+                        case 'search_by_look':
+                            sendWhatsAppTextMessage($accessToken, $phone_number, $search_by_look, $version, $phone_number_id);
+                            break;
+                        default:
+                            sendWhatsAppTextMessage($accessToken, $phone_number, $tilesSelectionTemplate, $version, $phone_number_id);
+                            break;
+                    }
+
+                    $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
+                }
+
+                file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                break;
 
             case 5:
+                if ($sessionData[$phone_number]['invalid_attempts'] >= 2) {
+                    handleMaxAttempts(
+                        $sessionData,
+                        $phone_number,
+                        2,
+                        $maximum_attempts_reached,
+                        $invalidSquareFeetMessage,
+                        4,
+                        $accessToken,
+                        $version,
+                        $phone_number_id
+                    );
+                    break;
+                }
                 if (isset($entry['interactive']) && (isset($entry['interactive']['list_reply']) || isset($entry['interactive']['button_reply']))) {
                     if (handleWrongInteractiveReply($stage, $sessionData, $phone_number, $accessToken, $version, $phone_number_id, $file)) break;
                 }
@@ -259,8 +332,6 @@ if (!empty($sessionData[$phone_number]['flow'])) {
 
                 $squareFeet = trim($entry['text']['body']);
 
-
-                // Check if the input has at least one digit and not just special characters
                 if (preg_match('/[a-zA-Z0-9]/', $squareFeet)) {
                     $sessionData[$phone_number]['squre_feet'] = $squareFeet;
                     $sessionData[$phone_number]['stage'] = 6;
@@ -278,7 +349,9 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                     $sessionData = [];
                     file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                     writeLog("All session data cleared.");
-                    sendWhatsAppTextMessage($accessToken, $phone_number, $thankyou, $version, $phone_number_id);
+                    sendWhatsAppMessage($accessToken, $phone_number, "product_thankyou ", $version, $phone_number_id);
+
+                    
                 } else {
                     writeLog("Invalid square feet input: $squareFeet");
                     handleMaxAttempts(
@@ -293,7 +366,6 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                         $phone_number_id
                     );
                 }
-
                 break;
         }
     } elseif ($flow === 'dealership_inquiry') {
@@ -420,7 +492,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                     writeLog("Stage 5 reply: $message");
 
                     $sessionData[$phone_number]['onbordtime'] = $message;
-                    sendWhatsAppTextMessage($accessToken, $phone_number, $dealershipThankYou, $version, $phone_number_id);
+                    sendWhatsAppMessage($accessToken, $phone_number, "delarship_thankyou ", $version, $phone_number_id);
                     writeLog("Delarship Flow Completed");
 
                     $sessionData[$phone_number]['stage'] = 6;
@@ -607,7 +679,7 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 $sessionData[$phone_number]['brandname'] = $message;
                 $sessionData[$phone_number]['invalid_attempts'] = 0;
                 $sessionData[$phone_number]['stage'] = 6;
-                sendWhatsAppTextMessage($accessToken, $phone_number, $exportThankYou, $version, $phone_number_id);
+                sendWhatsAppMessage($accessToken, $phone_number, "export_thankyou ", $version, $phone_number_id);
                 writeLog("🎉 Export/Import flow completed.");
 
                 // Send summary & clear session

@@ -93,7 +93,7 @@ $tilesSelectionTemplate = [
                     "rows" => [
                         [
                             "id" => "search_by_area",
-                            "title" => "By Area",
+                            "title" => "By Space",
                             "description" => ""
                         ],
                         [
@@ -126,7 +126,7 @@ $search_by_area = [
         "type" => "list",
         "header" => [
             "type" => "text",
-            "text" => "By Area"
+            "text" => "By Space"
         ],
         "body" => [
             "text" => "Great! 👌\nPlease select the area where you plan to use the tiles:"
@@ -140,12 +140,12 @@ $search_by_area = [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [ "id" => "Living Room", "title" => "Living Room", "description" => "Living Room" ],
-                        [ "id" => "Bathroom", "title" => "Bathroom", "description" => "Bathroom" ],
-                        [ "id" => "Bedroom", "title" => "Bedroom", "description" => "Bedroom" ],
-                        [ "id" => "Kitchen", "title" => "Kitchen", "description" => "Kitchen" ],
-                        [ "id" => "Balcony", "title" => "Balcony", "description" => "Balcony" ],
-                        [ "id" => "Outdoor", "title" => "Outdoor", "description" => "Outdoor" ]
+                        [ "id" => "Living Room", "title" => "Living Room", "description" => "" ],
+                        [ "id" => "Bathroom", "title" => "Bathroom", "description" => "" ],
+                        [ "id" => "Bedroom", "title" => "Bedroom", "description" => "" ],
+                        [ "id" => "Kitchen", "title" => "Kitchen", "description" => "" ],
+                        [ "id" => "Balcony", "title" => "Balcony", "description" => "" ],
+                        [ "id" => "Outdoor", "title" => "Outdoor", "description" => "" ]
                     ]
                 ]
             ]
@@ -175,12 +175,12 @@ $search_by_size = [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [ "id" => "20X120CM", "title" => "20X120 CM", "description" => "20X120 CM" ],
-                        [ "id" => "30X60CM", "title" => "30X60 CM", "description" => "30X60 CM" ],
-                        [ "id" => "40X80CM", "title" => "40X80 CM", "description" => "40X80 CM" ],
-                        [ "id" => "60X120CM", "title" => "60X120 CM", "description" => "60X120 CM" ],
-                        [ "id" => "60X60CM", "title" => "60X60 CM", "description" => "60X60 CM" ],
-                        [ "id" => "80X80CM", "title" => "80X80 CM", "description" => "80X80 CM" ]
+                        [ "id" => "20X120CM", "title" => "20X120 CM", "description" => "" ],
+                        [ "id" => "30X60CM", "title" => "30X60 CM", "description" => "" ],
+                        [ "id" => "40X80CM", "title" => "40X80 CM", "description" => "" ],
+                        [ "id" => "60X120CM", "title" => "60X120 CM", "description" => "" ],
+                        [ "id" => "60X60CM", "title" => "60X60 CM", "description" => "" ],
+                        [ "id" => "80X80CM", "title" => "80X80 CM", "description" => "" ]
                     ]
                 ]
             ]
@@ -210,13 +210,13 @@ $search_by_surface = [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [ "id" => "glit", "title" => "Glit", "description" => "Glit" ],
-                        [ "id" => "glossy", "title" => "Glossy", "description" => "Glossy" ],
-                        [ "id" => "matt", "title" => "Matt", "description" => "Matt" ],
-                        [ "id" => "matte_x", "title" => "Matte-X", "description" => "Matte-X" ],
-                        [ "id" => "shine_structured", "title" => "Shine Structured", "description" => "Shine Structured" ],
-                        [ "id" => "structured", "title" => "Structured", "description" => "Structured" ],
-                        [ "id" => "textured_matt", "title" => "Textured Matt", "description" => "Textured Matt" ]
+                        [ "id" => "glit", "title" => "Glit", "description" => "" ],
+                        [ "id" => "glossy", "title" => "Glossy", "description" => "" ],
+                        [ "id" => "matt", "title" => "Matt", "description" => "" ],
+                        [ "id" => "matte_x", "title" => "Matte-X", "description" => "" ],
+                        [ "id" => "shine_structured", "title" => "Shine Structured", "description" => "" ],
+                        [ "id" => "structured", "title" => "Structured", "description" => "" ],
+                        [ "id" => "textured_matt", "title" => "Textured Matt", "description" => "" ]
                     ]
                 ]
             ]
