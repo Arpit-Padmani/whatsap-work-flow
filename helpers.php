@@ -1,5 +1,5 @@
 <?php
-
+include 'templates.php';
 function writeLog($message)
 {
     global $logFile;
@@ -44,17 +44,39 @@ function getCityStateFromPincode($pincode)
 
     return null;
 }
-function handleMaxAttempts(&$sessionData, $phone_number, $maxAttempts, $failureTemplate, $retryTemplate, $stage, $accessToken, $version, $phone_number_id)
+function handleMaxAttempts(&$sessionData, $phone_number, $maxAttempts, $inqueryTemplate, $retryTemplate, $stage, $accessToken, $version, $phone_number_id)
 {
+
+    $file = 'session_data.json';
+
+
     if (!isset($sessionData[$phone_number]['invalid_attempts'])) {
         $sessionData[$phone_number]['invalid_attempts'] = 0;
     }
 
     $sessionData[$phone_number]['invalid_attempts']++;
 
-    if ($sessionData[$phone_number]['invalid_attempts'] >= $maxAttempts) {
-        sendWhatsAppTextMessage($accessToken, $phone_number, $failureTemplate, $version, $phone_number_id);
-        unset($sessionData[$phone_number]);
+    if ($sessionData[$phone_number]['invalid_attempts'] >= 4) {
+        $sessionData = [
+            $phone_number => [
+                "stage" => 0,
+                "name" => $sessionData[$phone_number]['name'] ?? ''
+            ]
+        ];
+
+        $userMessageII = $sessionData[$phone_number]['name'];
+        $personalizedTemplate = $inqueryTemplate;
+        $personalizedTemplate['to'] = $phone_number;
+        $personalizedTemplate['interactive']['body']['text'] = str_replace(
+            '{{user_name}}',
+            $userMessageII,
+            $inqueryTemplate['interactive']['body']['text']
+        );
+        sendWhatsAppTextMessage($accessToken, $phone_number, $personalizedTemplate, $version, $phone_number_id);
+
+        file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+        // sendWhatsAppTextMessage($accessToken, $phone_number, $failureTemplate, $version, $phone_number_id);
+        // unset($sessionData[$phone_number]);
         return 0; // Clear session on failure
     } else {
         sendWhatsAppTextMessage($accessToken, $phone_number, $retryTemplate, $version, $phone_number_id);
@@ -130,8 +152,8 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
             "leadDetails" => [
                 "companyname" => $sessionData[$phone_number]['username'] ?? 'Whatsapp',
                 "email" =>  null,
-                "contactno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
-                "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
+                "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
                 "country" =>  null,
                 "state" => $sessionData[$phone_number]['state'] ?? '',
@@ -184,8 +206,8 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
             "leadDetails" => [
                 "companyname" => $sessionData[$phone_number]['companyname'] ?? 'Whatsapp',
                 "email" =>  null,
-                "contactno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
-                "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
+                "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
                 "country" =>  null,
                 "state" => $sessionData[$phone_number]['state'] ?? '',
@@ -238,8 +260,8 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
             "leadDetails" => [
                 "companyname" => $sessionData[$phone_number]['companyname'] ?? 'Whatsapp',
                 "email" =>  $sessionData[$phone_number]['email'] ?? null,
-                "contactno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
-                "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
+                "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
                 "country" =>  $sessionData[$phone_number]['countryname'] ?? null,
                 "state" => null,
@@ -279,15 +301,15 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
         $remarks = "
     Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
     User Name: {$sessionData[$phone_number]['username']} ,
-    Mobile Number: {$sessionData[$phone_number]['phonenumber']}
+    Mobile Number:  '+'.{$sessionData[$phone_number]['phonenumber']}
 ";
         $data = [
             "menuName" => "New Lead Menu",
             "leadDetails" => [
                 "companyname" => $sessionData[$phone_number]['username'] ?? 'Whatsapp',
                 "email" =>  null,
-                "contactno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
-                "whatsappno" => $sessionData[$phone_number]['phonenumber'] ?? $phone_number,
+                "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
+                "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
                 "country" =>  null,
                 "state" => null,
@@ -368,7 +390,8 @@ function isValidBrandName($brandName)
 // Reusable function to handle wrong interactive input
 
 
-function handleWrongInteractiveReply($stage, $sessionData, $phone_number, $accessToken, $version, $phone_number_id, $file) {
+function handleWrongInteractiveReply($stage, $sessionData, $phone_number, $accessToken, $version, $phone_number_id, $file)
+{
     $invalid_prompt_templates = [
         2 => [
             "messaging_product" => "whatsapp",
@@ -431,7 +454,8 @@ function handleWrongInteractiveReply($stage, $sessionData, $phone_number, $acces
 }
 
 
-function resendLastTemplate($accessToken, $phone_number, $version, $phone_number_id, $last_template_sent) {
+function resendLastTemplate($accessToken, $phone_number, $version, $phone_number_id, $last_template_sent)
+{
     global $search_by_area, $search_by_size, $search_by_surface, $search_by_look, $tilesSelectionTemplate;
 
     $templateMap = [
@@ -453,4 +477,67 @@ function resendLastTemplate($accessToken, $phone_number, $version, $phone_number
     } else {
         sendWhatsAppTextMessage($accessToken, $phone_number, $tilesSelectionTemplate, $version, $phone_number_id);
     }
+}
+
+
+function markMessageAsRead($payload, $accessToken)
+{
+    // Decode incoming webhook JSON
+    $data = $payload;
+    // Make sure we have the phone_number_id and the message ID
+    if (
+        !isset($data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id']) ||
+        !isset($data['entry'][0]['changes'][0]['value']['messages'][0]['id'])
+    ) {
+        error_log("Required fields missing in webhook payload");
+        return false;
+    }
+
+    $phoneNumberId = $data['entry'][0]['changes'][0]['value']['metadata']['phone_number_id'];
+    $messageId     = $data['entry'][0]['changes'][0]['value']['messages'][0]['id'];
+
+    // API URL - use dynamic phone number ID
+    $url = "https://graph.facebook.com/v23.0/{$phoneNumberId}/messages";
+
+    // Payload to mark message as read
+    $postData = [
+        "messaging_product" => "whatsapp",
+        "status" => "read",
+        "message_id" => $messageId
+    ];
+
+    // Send request
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer $accessToken",
+        "Content-Type: application/json"
+    ]);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    if (curl_errno($ch)) {
+        error_log("cURL error: " . curl_error($ch));
+        curl_close($ch);
+        return false;
+    }
+    curl_close($ch);
+
+    return $response;
+}
+
+function getAreaUrl(string $area): string
+{
+    $areaUrls = [
+        "Living Room" => "https://lorencesurfaces.com/room/living-room/",
+        "Bathroom"   => "https://lorencesurfaces.com/room/bathroom/",
+        "Bedroom"    => "https://lorencesurfaces.com/room/bedroom/",
+        "Kitchen"    => "https://lorencesurfaces.com/room/kitchen/",
+        "Balcony"    => "https://lorencesurfaces.com/room/balcony/",
+        "Outdoor"    => "https://lorencesurfaces.com/room/outdoor/",
+        "Office"     => "https://lorencesurfaces.com/room/office/"
+    ];
+
+    return $areaUrls[$area] ?? "https://lorencesurfaces.com/";
 }

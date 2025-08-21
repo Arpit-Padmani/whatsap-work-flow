@@ -135,7 +135,7 @@ $search_by_area = [
             "text" => ""
         ],
         "action" => [
-            "button" => "Choose Area",
+            "button" => "Choose Space",
             "sections" => [
                 [
                     "title" => "Search Options",
@@ -265,7 +265,7 @@ $ask_squarefeet = [
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Got it! \n\nPlease enter the required area (in square feet):"
+        "body" => "Please enter the required area (in square feet):"
     ]
 ];
 
@@ -330,7 +330,7 @@ $askCountry = [
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Awesome, thanks! 🌍\nWhich country are you importing from or exporting to?"
+        "body" => "Awesome 🌍,\nWhich country are you importing from or exporting to?"
     ]
 ];
 
@@ -425,6 +425,13 @@ $retryMessageBrand = [
     "type" => "text",
     "text" => [ "body" => "❌ Please enter a valid brand name." ]
 ];
+$invalid_supplier_response = [
+    "type" => "text",
+    "text" => [
+        "body" => "⚠️ Invalid supplier name. Please enter your supplier's name using letters or numbers only."
+    ]
+];
+
 
 $maximum_attempts_reached = [
     "messaging_product" => "whatsapp",
@@ -439,5 +446,15 @@ $invalid_option_template = [
     "type" => "text",
     "text" => [
         "body" => "❌ Invalid option. Please select from the list below 👇"
+    ]
+];
+
+
+$send_product_link = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "Please click on below link to view products for *$area* 👇 \n \n $url"
     ]
 ];

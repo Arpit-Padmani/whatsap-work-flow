@@ -10,7 +10,7 @@ function writeLogg($message) {
 
 function sendWhatsAppMessage($authToken,$receiver_number, $templateName,  $version, $phone_number_id)
 {
-    $url = "https://graph.facebook.com/v22.0/642760735595014/messages?access_token=$authToken";
+    $url = "https://graph.facebook.com/v22.0/713193288549152/messages?access_token=$authToken";
     $data = [
         "messaging_product" => "whatsapp",
         "to" => $receiver_number,
@@ -47,7 +47,7 @@ function sendWhatsAppMessage($authToken,$receiver_number, $templateName,  $versi
 
 function sendWhatsAppTextMessage($authToken, $receiver_number, $tempate, $version, $phone_number_id)
 {
-    $url = "https://graph.facebook.com/v22.0/642760735595014/messages?access_token=$authToken";
+    $url = "https://graph.facebook.com/v22.0/713193288549152/messages?access_token=$authToken";
 
     writeLogg("Sending WhatsApp message to $receiver_number");
     writeLogg("Request URL: $url");
