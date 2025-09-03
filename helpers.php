@@ -132,10 +132,16 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
     $url = "https://ventas.lorencesurfaces.com/api/WhatsappAPIs/AddLead";
 
     $data = []; // default empty
+    $ininternational = true;
+    if (strpos($sessionData[$phone_number]['phonenumber'], '91') === 0) {
+        writeLog("User is from India (+91). Asking for pincode.");
+        $ininternational = false;
+       writeLog($ininternational ? 'true' : 'false');
+    }
 
     if ($sessionData[$phone_number]['flow'] === 'product_inquiry') {
         $remarks = "
-    Name: {$sessionData[$phone_number]['username']} , 
+    Name: {$sessionData[$phone_number]['name']} , 
     Inquiry Type: {$sessionData[$phone_number]['flowtitle']} , 
     Pincode: {$sessionData[$phone_number]['pincode']} , 
     Search Preference: {$sessionData[$phone_number]['tiles_title']} , 
@@ -147,19 +153,22 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
         writeLog('------------------------------------------------------------------------------------------------');
         writeLog($remarks);
         writeLog('------------------------------------------------------------------------------------------------');
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($ininternational);
+        writeLog('------------------------------------------------------------------------------------------------');
         $data = [
             "menuName" => "New Lead Menu",
             "leadDetails" => [
-                "companyname" => $sessionData[$phone_number]['username'] ?? 'Whatsapp',
+                "companyname" => $sessionData[$phone_number]['name'] ?? 'Whatsapp',
                 "email" =>  null,
                 "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
                 "country" =>  null,
-                "state" => $sessionData[$phone_number]['state'] ?? '',
-                "city" => $sessionData[$phone_number]['city'] ?? '',
-                "address" => null,
-                "managername" => $sessionData[$phone_number]['username'] ?? null,
+                "state" => null,
+                "city" => null,
+                "address" => $sessionData[$phone_number]['pincode'] ?? $sessionData[$phone_number]['city_country'],
+                "managername" => $sessionData[$phone_number]['name'] ?? null,
                 "manageremail" => null,
                 "managercontactno" => null,
                 "managerwhatsappno" => null,
@@ -170,7 +179,7 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "remarks" => $remarks,
                 "arrivaldate" => null,
                 "stageid" => 1,
-                "tagid" => 2,
+                "tagid" => 191,
                 "agencyid" => 1,
                 "agencyname" => null,
                 "isclient" => false,
@@ -198,8 +207,11 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
     Onboarding Time: {$sessionData[$phone_number]['onbordtime']} 
 ";
 
-        writeLog('------------------------------------------------------------------------------------------------');
+       writeLog('------------------------------------------------------------------------------------------------');
         writeLog($remarks);
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($ininternational);
         writeLog('------------------------------------------------------------------------------------------------');
         $data = [
             "menuName" => "New Lead Menu",
@@ -210,10 +222,10 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
                 "country" =>  null,
-                "state" => $sessionData[$phone_number]['state'] ?? '',
-                "city" => $sessionData[$phone_number]['city'] ?? '',
-                "address" => null,
-                "managername" => $sessionData[$phone_number]['username'] ?? null,
+                "state" => null,
+                "city" => null,
+                "address" => $sessionData[$phone_number]['pincode'] ?? $sessionData[$phone_number]['city_country'] ,
+                "managername" => $sessionData[$phone_number]['name'] ?? null,
                 "manageremail" => null,
                 "managercontactno" => null,
                 "managerwhatsappno" => null,
@@ -224,7 +236,7 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "remarks" => $remarks,
                 "arrivaldate" => null,
                 "stageid" => 1,
-                "tagid" => 2,
+                "tagid" => 192,
                 "agencyid" => 1,
                 "agencyname" => null,
                 "isclient" => false,
@@ -252,8 +264,11 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
     Associated Brand: {$sessionData[$phone_number]['brandname']}
 ";
 
-        writeLog('------------------------------------------------------------------------------------------------');
+       writeLog('------------------------------------------------------------------------------------------------');
         writeLog($remarks);
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($ininternational);
         writeLog('------------------------------------------------------------------------------------------------');
         $data = [
             "menuName" => "New Lead Menu",
@@ -267,7 +282,7 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "state" => null,
                 "city" => null,
                 "address" => null,
-                "managername" => $sessionData[$phone_number]['username'] ?? null,
+                "managername" => $sessionData[$phone_number]['name'] ?? null,
                 "manageremail" => null,
                 "managercontactno" => null,
                 "managerwhatsappno" => null,
@@ -278,7 +293,7 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "remarks" => $remarks,
                 "arrivaldate" => null,
                 "stageid" => 1,
-                "tagid" => 2,
+                "tagid" => 193,
                 "agencyid" => 1,
                 "agencyname" => null,
                 "isclient" => false,
@@ -300,13 +315,18 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
     } elseif ($sessionData[$phone_number]['flow'] === 'request_call_back') {
         $remarks = "
     Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
-    User Name: {$sessionData[$phone_number]['username']} ,
+    User Name: {$sessionData[$phone_number]['name']} ,
     Mobile Number:  '+'.{$sessionData[$phone_number]['phonenumber']}
-";
+";       writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($remarks);
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog('------------------------------------------------------------------------------------------------');
+        writeLog($ininternational);
+        writeLog('------------------------------------------------------------------------------------------------');
         $data = [
             "menuName" => "New Lead Menu",
             "leadDetails" => [
-                "companyname" => $sessionData[$phone_number]['username'] ?? 'Whatsapp',
+                "companyname" => $sessionData[$phone_number]['name'] ?? 'Whatsapp',
                 "email" =>  null,
                 "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
@@ -315,7 +335,7 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "state" => null,
                 "city" => null,
                 "address" => null,
-                "managername" => $sessionData[$phone_number]['username'] ?? null,
+                "managername" => $sessionData[$phone_number]['name'] ?? null,
                 "manageremail" => null,
                 "managercontactno" => null,
                 "managerwhatsappno" => null,
@@ -326,7 +346,7 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "remarks" => $remarks,
                 "arrivaldate" => null,
                 "stageid" => 1,
-                "tagid" => 2,
+                "tagid" => 194,
                 "agencyid" => 1,
                 "agencyname" => null,
                 "isclient" => false,

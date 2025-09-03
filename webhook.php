@@ -136,7 +136,18 @@ if (!empty($sessionData[$phone_number]['flow'])) {
     if ($flow === "product_inquiry") {
         switch ($stage) {
             case 1:
-                sendWhatsAppMessage($accessToken, $phone_number, "ask_pincode", $version, $phone_number_id);
+                if (strpos($sessionData[$phone_number]['phonenumber'] , '91') === 0) {
+                    // For India → Ask pincode
+                    sendWhatsAppMessage($accessToken, $phone_number, "ask_pincode", $version, $phone_number_id);
+                    writeLog("User is from India (+91). Asking for pincode.". strpos($sessionData[$phone_number]['phonenumber'] , '91'));
+                    $sessionData[$phone_number]['askpincode'] = 1;
+                } else {
+                    // For other countries → Ask city & country
+                    sendWhatsAppTextMessage($accessToken, $phone_number, $askcitycountry, $version, $phone_number_id);
+                    writeLog("User is NOT from India. Asking for city and country.".strpos($sessionData[$phone_number]['phonenumber'] , '91'));
+                    writeLog("User is NOT from India. Asking for city and country.".$sessionData[$phone_number]['phonenumber']);
+                    $sessionData[$phone_number]['askpincode'] = 0;
+                }
                 writeLog("Message senddned successfully");
 
                 $message = strtolower(trim($entry['text']['body'] ?? ''));
@@ -155,84 +166,99 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                     if (handleWrongInteractiveReply($stage, $sessionData, $phone_number, $accessToken, $version, $phone_number_id, $file)) break;
                 }
                 if (isset($entry['text']['body'])) {
+
                     $pincode = trim($entry['text']['body']);
-                    $sessionData[$phone_number]['pincode'] = $pincode;
-                    writeLog("User entered pincode: $pincode");
-                    $response = markMessageAsRead($data, $accessToken);
-                    writeLog("=======================================Message Read====================================");
-                    writeLog($response);
+                    if (!empty($sessionData[$phone_number]['askpincode']) && $sessionData[$phone_number]['askpincode'] == 1) {
+                        // ---------------- For Indian Users (Ask Pincode) ----------------
+                        $sessionData[$phone_number]['pincode'] = $pincode;
+                        writeLog("User entered pincode: $pincode");
+                        $response = markMessageAsRead($data, $accessToken);
+                        writeLog("=======================================Message Read====================================");
+                        writeLog($response);
 
-                    if (strlen($pincode) == 6 && ctype_digit($pincode)) {
-                        $location = getCityStateFromPincode($pincode);
+                        if (strlen($pincode) == 6 && ctype_digit($pincode)) {
+                            $location = getCityStateFromPincode($pincode);
 
-                        if ($location) {
-                            writeLog("City: " . $location['city'] . ", State: " . $location['state']);
+                            if ($location) {
+                                writeLog("City: " . $location['city'] . ", State: " . $location['state']);
 
-                            $sessionData[$phone_number]['pincode'] = $pincode;
-                            $sessionData[$phone_number]['city'] = $location['city'];
-                            $sessionData[$phone_number]['state'] = $location['state'];
+                                $sessionData[$phone_number]['pincode'] = $pincode;
+                                $sessionData[$phone_number]['city'] = $location['city'];
+                                $sessionData[$phone_number]['state'] = $location['state'];
 
-                            sendWhatsAppTextMessage($accessToken, $phone_number, $tilesSelectionTemplate, $version, $phone_number_id);
-                            $sessionData[$phone_number]['stage'] = 3;
-                            $sessionData[$phone_number]['invalid_attempts'] = 0;
+                                sendWhatsAppTextMessage($accessToken, $phone_number, $tilesSelectionTemplate, $version, $phone_number_id);
+                                $sessionData[$phone_number]['stage'] = 3;
+                                $sessionData[$phone_number]['invalid_attempts'] = 0;
+                            } else {
+                                $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
+
+                                if ($sessionData[$phone_number]['invalid_attempts'] >= 4) {
+                                    sendWhatsAppTextMessage($accessToken, $phone_number, $maximum_attempts_reached, $version, $phone_number_id);
+
+                                    $userMessageII = $sessionData[$phone_number]['name'];
+                                    $personalizedTemplate = $inqueryTemplate;
+                                    $personalizedTemplate['to'] = $phone_number;
+                                    $personalizedTemplate['interactive']['body']['text'] = str_replace(
+                                        '{{user_name}}',
+                                        $userMessageII,
+                                        $inqueryTemplate['interactive']['body']['text']
+                                    );
+                                    sendWhatsAppTextMessage($accessToken, $phone_number, $personalizedTemplate, $version, $phone_number_id);
+
+                                    $sessionData = [
+                                        $phone_number => [
+                                            "stage" => 0,
+                                            "name" => $sessionData[$phone_number]['name'] ?? ''
+                                        ]
+                                    ];
+                                    file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
+                                } else {
+                                    sendWhatsAppTextMessage($accessToken, $phone_number, $errorMessage, $version, $phone_number_id);
+                                    $sessionData[$phone_number]['stage'] = 2;
+                                }
+                            }
                         } else {
                             $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
 
                             if ($sessionData[$phone_number]['invalid_attempts'] >= 4) {
                                 sendWhatsAppTextMessage($accessToken, $phone_number, $maximum_attempts_reached, $version, $phone_number_id);
-                                
-                                $userMessageII = $sessionData[$phone_number]['name'];
-        $personalizedTemplate = $inqueryTemplate;
-        $personalizedTemplate['to'] = $phone_number;
-        $personalizedTemplate['interactive']['body']['text'] = str_replace(
-            '{{user_name}}',
-            $userMessageII,
-            $inqueryTemplate['interactive']['body']['text']
-        );
-        sendWhatsAppTextMessage($accessToken, $phone_number, $personalizedTemplate, $version, $phone_number_id);
 
-  $sessionData = [
-            $phone_number => [
-                "stage" => 0,
-                "name" => $sessionData[$phone_number]['name'] ?? ''
-            ]
-        ];
-file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
-        
+                                $userMessageII = $sessionData[$phone_number]['name'];
+                                $personalizedTemplate = $inqueryTemplate;
+                                $personalizedTemplate['to'] = $phone_number;
+                                $personalizedTemplate['interactive']['body']['text'] = str_replace(
+                                    '{{user_name}}',
+                                    $userMessageII,
+                                    $inqueryTemplate['interactive']['body']['text']
+                                );
+                                sendWhatsAppTextMessage($accessToken, $phone_number, $personalizedTemplate, $version, $phone_number_id);
+
+                                $sessionData = [
+                                    $phone_number => [
+                                        "stage" => 0,
+                                        "name" => $sessionData[$phone_number]['name'] ?? ''
+                                    ]
+                                ];
+                                file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                             } else {
                                 sendWhatsAppTextMessage($accessToken, $phone_number, $errorMessage, $version, $phone_number_id);
                                 $sessionData[$phone_number]['stage'] = 2;
                             }
                         }
                     } else {
-                        $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
+                        // ---------------- For Non-Indian Users (Ask City & Country) ----------------
+                        $sessionData[$phone_number]['city_country'] = $pincode;
+                        writeLog("User entered city/country: $pincode");
 
-                        if ($sessionData[$phone_number]['invalid_attempts'] >= 4) {
-                            sendWhatsAppTextMessage($accessToken, $phone_number, $maximum_attempts_reached, $version, $phone_number_id);
-                            
-                                $userMessageII = $sessionData[$phone_number]['name'];
-        $personalizedTemplate = $inqueryTemplate;
-        $personalizedTemplate['to'] = $phone_number;
-        $personalizedTemplate['interactive']['body']['text'] = str_replace(
-            '{{user_name}}',
-            $userMessageII,
-            $inqueryTemplate['interactive']['body']['text']
-        );
-        sendWhatsAppTextMessage($accessToken, $phone_number, $personalizedTemplate, $version, $phone_number_id);
+                        $response = markMessageAsRead($data, $accessToken);
+                        writeLog("=======================================Message Read====================================");
+                        writeLog($response);
 
-  $sessionData = [
-            $phone_number => [
-                "stage" => 0,
-                "name" => $sessionData[$phone_number]['name'] ?? ''
-            ]
-        ];
-file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
-        
-                        } else {
-                            sendWhatsAppTextMessage($accessToken, $phone_number, $errorMessage, $version, $phone_number_id);
-                            $sessionData[$phone_number]['stage'] = 2;
-                        }
+                        // Go to next stage (like tiles selection or whatever comes next)
+                        sendWhatsAppTextMessage($accessToken, $phone_number, $tilesSelectionTemplate, $version, $phone_number_id);
+                        $sessionData[$phone_number]['stage'] = 3;
                     }
+
 
                     file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 }
@@ -516,7 +542,18 @@ file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
     } elseif ($flow === 'dealership_inquiry') {
         switch ($stage) {
             case 1:
-                sendWhatsAppMessage($accessToken, $phone_number, "ask_pincode", $version, $phone_number_id);
+                if (strpos($phone_number, '91') === 0) {
+                    // For India → Ask pincode
+                    sendWhatsAppMessage($accessToken, $phone_number, "ask_pincode", $version, $phone_number_id);
+                    writeLog("User is from India (+91). Asking for pincode.");
+                    $sessionData[$phone_number]['askpincode'] = 1;
+                } else {
+                    // For other countries → Ask city & country
+                    sendWhatsAppTextMessage($accessToken, $phone_number, $askcitycountry, $version, $phone_number_id);
+                    writeLog("User is NOT from India. Asking for city and country.");
+                    $sessionData[$phone_number]['askpincode'] = 0;
+                }
+
                 writeLog("Message senddned successfully");
 
                 $message = $entry['text']['body'];
@@ -533,25 +570,40 @@ file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
             case 2:
                 if (isset($entry['text']['body'])) {
                     $pincode = trim($entry['text']['body']);
-                    $sessionData[$phone_number]['pincode'] = $pincode;
-                    writeLog("User entered pincode: $pincode");
-                    $response = markMessageAsRead($data, $accessToken);
-                    writeLog("=======================================Message Read====================================");
-                    writeLog($response);
+                    if (!empty($sessionData[$phone_number]['askpincode']) && $sessionData[$phone_number]['askpincode'] == 1) {
 
-                    if (strlen($pincode) == 6 && ctype_digit($pincode)) {
-                        $location = getCityStateFromPincode($pincode);
+                        $sessionData[$phone_number]['pincode'] = $pincode;
+                        writeLog("User entered pincode: $pincode");
+                        $response = markMessageAsRead($data, $accessToken);
+                        writeLog("=======================================Message Read====================================");
+                        writeLog($response);
 
-                        if ($location) {
-                            writeLog("City: " . $location['city'] . ", State: " . $location['state']);
+                        if (strlen($pincode) == 6 && ctype_digit($pincode)) {
+                            $location = getCityStateFromPincode($pincode);
 
-                            $sessionData[$phone_number]['pincode'] = $pincode;
-                            $sessionData[$phone_number]['city'] = $location['city'];
-                            $sessionData[$phone_number]['state'] = $location['state'];
+                            if ($location) {
+                                writeLog("City: " . $location['city'] . ", State: " . $location['state']);
 
-                            sendWhatsAppTextMessage($accessToken, $phone_number, $askCompanyName, $version, $phone_number_id);
-                            $sessionData[$phone_number]['stage'] = 3;
-                            $sessionData[$phone_number]['invalid_attempts'] = 0;
+                                $sessionData[$phone_number]['pincode'] = $pincode;
+                                $sessionData[$phone_number]['city'] = $location['city'];
+                                $sessionData[$phone_number]['state'] = $location['state'];
+
+                                sendWhatsAppTextMessage($accessToken, $phone_number, $askCompanyName, $version, $phone_number_id);
+                                $sessionData[$phone_number]['stage'] = 3;
+                                $sessionData[$phone_number]['invalid_attempts'] = 0;
+                            } else {
+                                handleMaxAttempts(
+                                    $sessionData,
+                                    $phone_number,
+                                    2,
+                                    $inqueryTemplate,
+                                    $errorMessage,
+                                    2,
+                                    $accessToken,
+                                    $version,
+                                    $phone_number_id
+                                );
+                            }
                         } else {
                             handleMaxAttempts(
                                 $sessionData,
@@ -565,20 +617,20 @@ file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                                 $phone_number_id
                             );
                         }
-                    } else {
-                        handleMaxAttempts(
-                            $sessionData,
-                            $phone_number,
-                            2,
-                            $inqueryTemplate,
-                            $errorMessage,
-                            2,
-                            $accessToken,
-                            $version,
-                            $phone_number_id
-                        );
-                    }
+                    }else {
+                        // ---------------- For Non-Indian Users (Ask City & Country) ----------------
+                        $sessionData[$phone_number]['city_country'] = $pincode;
+                        writeLog("User entered city/country: $pincode");
 
+                        $response = markMessageAsRead($data, $accessToken);
+                        writeLog("=======================================Message Read====================================");
+                        writeLog($response);
+
+                        // Go to next stage (like tiles selection or whatever comes next)
+                        sendWhatsAppTextMessage($accessToken, $phone_number, $askCompanyName, $version, $phone_number_id);
+                        $sessionData[$phone_number]['stage'] = 3;
+                        $sessionData[$phone_number]['invalid_attempts'] = 0;
+                    }
                     file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 }
                 break;

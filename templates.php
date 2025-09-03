@@ -5,7 +5,7 @@ $welcomeTemplate = [
     "to" => $phone_number,
     "type" => "text",
     "text" => [
-        "body" => "Hi 👋 Welcome to *Lorence Vitrified* Official Account!"
+        "body" => "Hi 👋 Welcome to *Lorence Surfaces* Official Account!"
     ]
 ];
 $askusername = [
@@ -43,17 +43,17 @@ $inqueryTemplate = [
         "rows" => [
             [
                 "id" => "product_inquiry",
-                "title" => "Product Enquiry 🛍️",
+                "title" => "Product Inquiry 🛍️",
                 "description" => ""
             ],
             [
                 "id" => "dealership_inquiry",
-                "title" => "Dealership Enquiry 🏢",
+                "title" => "Dealership Inquiry 🏢",
                 "description" => ""
             ],
             [
                 "id" => "exportImport_inqiry",
-                "title" => "Export Enquiry 🌎",
+                "title" => "Export Inquiry 🌎",
                 "description" => ""
             ],
             [
@@ -304,7 +304,7 @@ $askOnboardTiming = [
     "interactive" => [
         "type" => "button",
         "body" => [
-            "text" => "When are you planning to onboard a new supplier?"
+            "text" => "Join hands with Lorence Surfaces"
         ],
         "action" => [
             "buttons" => [
@@ -456,5 +456,14 @@ $send_product_link = [
     "type" => "text",
     "text" => [
         "body" => "Please click on below link to view products for *$area* 👇 \n \n $url"
+    ]
+];
+
+$askcitycountry = [
+    "messaging_product" => "whatsapp",
+    "to" => $phone_number,
+    "type" => "text",
+    "text" => [
+        "body" => "🌍 Please share your *City* and *Country* so we can assist you better."
     ]
 ];
