@@ -53,7 +53,9 @@ if (isset($entry['text']['body'])) {
         sendWhatsAppTextMessage($accessToken, $phone_number, $askusername, $version, $phone_number_id);
 
         $sessionData[$phone_number] = [
-            'stage' => 0, // Next expected: user name
+            'stage' => 0,
+            'last_activity' => time(),
+            'reminder_count' => 0
         ];
         file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
     } else {
@@ -64,6 +66,8 @@ if (isset($entry['text']['body'])) {
             }
             // Stage 1: User entered their name
             $sessionData[$phone_number]['stage'] = 1;
+            $sessionData[$phone_number]['last_activity'] = time();
+            $sessionData[$phone]['reminder_count'] = 0 ;
             $userMessageII = $sessionData[$phone_number]['name'];
 
             $personalizedTemplate = $inqueryTemplate;
@@ -119,7 +123,9 @@ if (isset($entry['interactive']['list_reply']) && empty($sessionData[$phone_numb
         'stage' => 1,
         'flow' => $reply_id,
         'flowtitle' => $reply_title,
-        'name' => $name
+        'name' => $name,
+        'last_activity' => time(),
+        'reminder_count' =>0
     ];
     $sessionData[$phone_number]['phonenumber'] = $phone_number;
     $sessionData[$phone_number]['username'] = $username;
@@ -157,6 +163,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 writeLog($response);
 
                 $sessionData[$phone_number]['stage'] = 2;
+                $sessionData[$phone_number]['last_activity'] = time();
+            $sessionData[$phone]['reminder_count'] = 0 ;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 1";
                 break;
@@ -189,6 +197,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                                 sendWhatsAppTextMessage($accessToken, $phone_number, $tilesSelectionTemplate, $version, $phone_number_id);
                                 $sessionData[$phone_number]['stage'] = 3;
                                 $sessionData[$phone_number]['invalid_attempts'] = 0;
+                                $sessionData[$phone_number]['last_activity'] = time();
+            $sessionData[$phone]['reminder_count'] = 0 ;
                             } else {
                                 $sessionData[$phone_number]['invalid_attempts'] = ($sessionData[$phone_number]['invalid_attempts'] ?? 0) + 1;
 
@@ -292,6 +302,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                         $sessionData[$phone_number]['stage'] = 4;
                         $sessionData[$phone_number]['invalid_attempts'] = 0;
                         $sessionData[$phone_number]['last_template_sent'] = $tiles_id;
+                        $sessionData[$phone_number]['last_activity'] = time();
+            $sessionData[$phone]['reminder_count'] = 0 ;
                     } else {
                         handleMaxAttempts($sessionData, $phone_number, 2, $inqueryTemplate, $invalid_response_prompt, 3, $accessToken, $version, $phone_number_id);
                     }
@@ -358,6 +370,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                         $sessionData[$phone_number]['tile_type'] = $look_value;
                         $sessionData[$phone_number]['stage'] = 5;
                         $sessionData[$phone_number]['invalid_attempts'] = 0;
+                        $sessionData[$phone_number]['last_activity'] = time();
+            $sessionData[$phone]['reminder_count'] = 0 ;
                         $areaUrls = [
                             //Space
                             "Living Room" => "https://lorencesurfaces.com/room/living-room/",
@@ -547,11 +561,15 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                     sendWhatsAppMessage($accessToken, $phone_number, "ask_pincode", $version, $phone_number_id);
                     writeLog("User is from India (+91). Asking for pincode.");
                     $sessionData[$phone_number]['askpincode'] = 1;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 } else {
                     // For other countries → Ask city & country
                     sendWhatsAppTextMessage($accessToken, $phone_number, $askcitycountry, $version, $phone_number_id);
                     writeLog("User is NOT from India. Asking for city and country.");
                     $sessionData[$phone_number]['askpincode'] = 0;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 }
 
                 writeLog("Message senddned successfully");
@@ -563,6 +581,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 writeLog("message getted after pincode");
 
                 $sessionData[$phone_number]['stage'] = 2;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 2";
                 break;
@@ -591,6 +611,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                                 sendWhatsAppTextMessage($accessToken, $phone_number, $askCompanyName, $version, $phone_number_id);
                                 $sessionData[$phone_number]['stage'] = 3;
                                 $sessionData[$phone_number]['invalid_attempts'] = 0;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                             } else {
                                 handleMaxAttempts(
                                     $sessionData,
@@ -630,6 +652,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                         sendWhatsAppTextMessage($accessToken, $phone_number, $askCompanyName, $version, $phone_number_id);
                         $sessionData[$phone_number]['stage'] = 3;
                         $sessionData[$phone_number]['invalid_attempts'] = 0;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                     }
                     file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 }
@@ -647,6 +671,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
 
                     $sessionData[$phone_number]['stage'] = 4;
                     $sessionData[$phone_number]['invalid_attempts'] = 0;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 } else {
                     handleMaxAttempts(
                         $sessionData,
@@ -676,6 +702,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
 
                     $sessionData[$phone_number]['stage'] = 5;
                     $sessionData[$phone_number]['invalid_attempts'] = 0;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 } else {
                     handleMaxAttempts(
                         $sessionData,
@@ -761,6 +789,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 writeLog($message);
 
                 $sessionData[$phone_number]['stage'] = 2;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 2";
                 break;
@@ -781,6 +811,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
 
                     $sessionData[$phone_number]['stage'] = 3;
                     $sessionData[$phone_number]['invalid_attempts'] = 0;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 } else {
                     // Invalid company name - handle invalid response
                     handleMaxAttempts(
@@ -834,6 +866,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 writeLog("📧 Email question sent.");
 
                 $sessionData[$phone_number]['stage'] = 4;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 4";
                 break;
@@ -881,6 +915,8 @@ if (!empty($sessionData[$phone_number]['flow'])) {
                 writeLog("📦 Brand question sent.");
 
                 $sessionData[$phone_number]['stage'] = 5;
+                $sessionData[$phone_number]['last_activity'] = time();
+                $sessionData[$phone]['reminder_count'] = 0 ;
                 file_put_contents($file, json_encode($sessionData, JSON_PRETTY_PRINT));
                 echo "step 5";
                 break;

@@ -129,7 +129,7 @@ function completeAndClearSession($accessToken, $phone_number, $sessionData, $ver
 
 function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $phone_number_id, $file)
 {
-    $url = "https://ventas.lorencesurfaces.com/api/WhatsappAPIs/AddLead";
+    $url = "https://crm.lorencesurfaces.com/api/WhatsappAPIs/AddLead";
 
     $data = []; // default empty
     $ininternational = true;

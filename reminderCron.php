@@ -1,13 +1,5 @@
 <?php
-function writeLog($message)
-{
-    global $logFile;
-    $timestamp = date('Y-m-d H:i:s');
-    if (is_array($message) || is_object($message)) {
-        $message = print_r($message, true);
-    }
-    file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
-}
+
 include('whatsappSendMsg.php');
 $logFile = __DIR__ . '/cron_log.log';
 // ✅ Config
@@ -28,7 +20,7 @@ foreach ($sessionData as $userId => $messages) {
             // Check if enough time has passed (e.g., 3 minutes = 180 seconds)
             $sentTime = strtotime($msg['timestamp']);
             if ((time() - $sentTime) >= 180) {
-                 $payload = [
+                $payload = [
                     "messaging_product" => "whatsapp",
                     "to" => $userId,
                     "type" => "interactive",
