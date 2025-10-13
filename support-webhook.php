@@ -46,13 +46,12 @@ if ($messageData['type'] === 'text') {
     exit;
 }
 
-if ($messageData['type'] === 'interactive' 
-    && isset($messageData['interactive']['button_reply']['id'])) {
+if ($messageData['type'] === 'button') {
 
-    $buttonId = $messageData['interactive']['button_reply']['id'];
+    $buttonId = $messageData['button']['payload'];
     writeLog("Button reply received: $buttonId");
 
-    if ($buttonId === 'ok') {
+    if ($buttonId == 'Okay') {
         $file = __DIR__ . '/session.json';
         if (file_exists($file)) {
             $sessionData = json_decode(file_get_contents($file), true);

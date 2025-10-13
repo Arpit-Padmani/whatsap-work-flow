@@ -129,7 +129,14 @@ foreach ($sessionData as $phone => $data) {
         $inactiveTime = time() - $data['last_activity'];
         if ($inactiveTime > 60) { // 1 hour = 3600 sec
             $reminderCount = $sessionData[$phone]['reminder_count'] ?? 0;
+             $reminderMessages = [
+                0 => "👋 Still there? We’d love to assist you!",
+                1 => "⏳ Don’t leave your query halfway—let’s wrap this up!",
+                2 => "✅ Just one reply away from getting the right solution!"
+            ];
+            
             if ($reminderCount < 3) {
+                $reminderMsg = $reminderMessages[$reminderCount];
                 // ✅ Send generic reminder
                 $response = sendWhatsAppTextMessage(
                     $accessToken,
@@ -138,7 +145,7 @@ foreach ($sessionData as $phone => $data) {
                         "messaging_product" => "whatsapp",
                         "to" => $phone,  // <-- CORRECT: use $userId, not $phone_number
                         "type" => "text",
-                        "text" => ["body" => "⏰ Reminder: "]
+                        "text" => ["body" => $reminderMsg]
                     ],
                     $version,
                     $phone_number_id
