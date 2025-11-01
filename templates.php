@@ -8,6 +8,7 @@ $welcomeTemplate = [
         "body" => "Hi 👋 Welcome to *Lorence Surfaces* Official Account!"
     ]
 ];
+
 $askusername = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -68,7 +69,7 @@ $inqueryTemplate = [
         ]
     ]
 ];
-//Products / Tiles Inquiry
+
 $tilesSelectionTemplate = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -175,12 +176,17 @@ $search_by_size = [
                 [
                     "title" => "Search Options",
                     "rows" => [
-                        [ "id" => "20X120CM", "title" => "20X120 CM", "description" => "" ],
+                        // [ "id" => "20X120CM", "title" => "20X120 CM", "description" => "" ],
                         [ "id" => "30X60CM", "title" => "30X60 CM", "description" => "" ],
                         [ "id" => "40X80CM", "title" => "40X80 CM", "description" => "" ],
                         [ "id" => "60X120CM", "title" => "60X120 CM", "description" => "" ],
                         [ "id" => "60X60CM", "title" => "60X60 CM", "description" => "" ],
-                        [ "id" => "80X80CM", "title" => "80X80 CM", "description" => "" ]
+                        [ "id" => "80X80CM", "title" => "80X80 CM", "description" => "" ],
+                        [ "id" => "1200X1200CM", "title" => "1200X1200 CM", "description" => "" ],
+                        [ "id" => "1200X1800CM", "title" => "1200X1800 CM", "description" => "" ],
+                        [ "id" => "1200X2400CM", "title" => "1200X2400 CM", "description" => "" ],
+                        [ "id" => "800X2400CM", "title" => "800X2400 CM", "description" => "15 MM" ],
+                        [ "id" => "800X3000CM", "title" => "800X3000 CM", "description" => "15 MM" ],
                     ]
                 ]
             ]
@@ -278,7 +284,6 @@ $thankyou = [
     ]
 ];
 
-// Delarship templates
 $askCompanyName = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -324,7 +329,6 @@ $dealershipThankYou = [
     ]
 ];
 
-// Export/Import templates
 $askCountry = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -361,7 +365,6 @@ $exportThankYou = [
     ]
 ];
 
-// Error messages
 $errorMessage = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -369,7 +372,6 @@ $errorMessage = [
     "text" => [ "body" => "❌ Please enter a valid 6-digit pincode." ]
 ];
 
-// Validation template
 $invalid_option_try_again = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -432,7 +434,6 @@ $invalid_supplier_response = [
     ]
 ];
 
-
 $maximum_attempts_reached = [
     "messaging_product" => "whatsapp",
     "to" => $phone_number,
@@ -448,7 +449,6 @@ $invalid_option_template = [
         "body" => "❌ Invalid option. Please select from the list below 👇"
     ]
 ];
-
 
 $send_product_link = [
     "messaging_product" => "whatsapp",
