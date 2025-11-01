@@ -1,5 +1,8 @@
 <?php
 include 'templates.php';
+require __DIR__ . '/phone/getCountryInfoFromPhone.php';
+
+
 function writeLog($message)
 {
     global $logFile;
@@ -138,23 +141,24 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
         $ininternational = false;
        writeLog($ininternational ? 'true' : 'false');
     }
+    $phonenum='+'.$phone_number;
+    
+    $info = getCountryInfoFromPhone($phonenum); 
+    if ($info && isset($info['country_name'])) {
+        $country = $info['country_name'];
+    } else {
+        $country = null; 
+    }
+
 
     if ($sessionData[$phone_number]['flow'] === 'product_inquiry') {
-        $remarks = "
-    Name: {$sessionData[$phone_number]['name']} , 
-    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} , 
-    Pincode: {$sessionData[$phone_number]['pincode']} , 
-    Search Preference: {$sessionData[$phone_number]['tiles_title']} , 
-    {$sessionData[$phone_number]['tiles_title']} : {$sessionData[$phone_number]['tile_type']} , 
-    Required Area: {$sessionData[$phone_number]['squre_feet']}
-
-";
+        $remarks = "Name: {$sessionData[$phone_number]['name']}, Inquiry Type: {$sessionData[$phone_number]['flowtitle']}, Pincode: {$sessionData[$phone_number]['pincode']}, Search Preference: {$sessionData[$phone_number]['tiles_title']} , {$sessionData[$phone_number]['tiles_title']} : {$sessionData[$phone_number]['tile_type']}, Required Area: {$sessionData[$phone_number]['squre_feet']}";
 
         writeLog('------------------------------------------------------------------------------------------------');
         writeLog($remarks);
         writeLog('------------------------------------------------------------------------------------------------');
         writeLog('------------------------------------------------------------------------------------------------');
-        writeLog($ininternational);
+        writeLog($country);
         writeLog('------------------------------------------------------------------------------------------------');
         $data = [
             "menuName" => "New Lead Menu",
@@ -164,9 +168,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
-                "country" =>  null,
-                "state" => null,
-                "city" => null,
+                "country" =>  !empty($country) ? $country : (!empty($sessionData[$phone_number]['pincode']) ? "India" : null),
+                "city"    => !empty($sessionData[$phone_number]['pincode']) ? $sessionData[$phone_number]['city'] : null,
+                "state"   => !empty($sessionData[$phone_number]['pincode']) ? $sessionData[$phone_number]['state'] : null,
                 "address" => $sessionData[$phone_number]['pincode'] ?? $sessionData[$phone_number]['city_country'],
                 "managername" => $sessionData[$phone_number]['name'] ?? null,
                 "manageremail" => null,
@@ -178,9 +182,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "leadsource" => 'Chatbot - ' . $sessionData[$phone_number]['flowtitle'] ?? 'Chatbot Inquiry',
                 "remarks" => $remarks,
                 "arrivaldate" => null,
-                "stageid" => 1,
+                "stageid" => 272,
                 "tagid" => 191,
-                "agencyid" => 1,
+                "agencyid" => 94,
                 "agencyname" => null,
                 "isclient" => false,
                 "isrejected" => false,
@@ -195,18 +199,12 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "notificationMessage" => null,
                 "googleMapLink" => null,
                 "isGenerateLead" => null,
-                "remarkUpdateDate" => null
+                "remarkUpdateDate" => null,
+                "isinternational" =>$ininternational
             ]
         ];
     } elseif ($sessionData[$phone_number]['flow'] === 'dealership_inquiry') {
-        $remarks = "
-    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
-    Pincode: {$sessionData[$phone_number]['pincode']} , 
-    Firm Name: {$sessionData[$phone_number]['companyname']} , 
-    Current Supplier: {$sessionData[$phone_number]['supplier']} , 
-    Onboarding Time: {$sessionData[$phone_number]['onbordtime']} 
-";
-
+        $remarks = "Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,Pincode: {$sessionData[$phone_number]['pincode']} ,Firm Name: {$sessionData[$phone_number]['companyname']} , Current Supplier: {$sessionData[$phone_number]['supplier']} ,Onboarding Time: {$sessionData[$phone_number]['onbordtime']}";
        writeLog('------------------------------------------------------------------------------------------------');
         writeLog($remarks);
         writeLog('------------------------------------------------------------------------------------------------');
@@ -221,9 +219,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
-                "country" =>  null,
-                "state" => null,
-                "city" => null,
+                "country" =>  !empty($country) ? $country : (!empty($sessionData[$phone_number]['pincode']) ? "India" : null),
+                "city"    => !empty($sessionData[$phone_number]['pincode']) ? $sessionData[$phone_number]['city'] : null,
+                "state"   => !empty($sessionData[$phone_number]['pincode']) ? $sessionData[$phone_number]['state'] : null,
                 "address" => $sessionData[$phone_number]['pincode'] ?? $sessionData[$phone_number]['city_country'] ,
                 "managername" => $sessionData[$phone_number]['name'] ?? null,
                 "manageremail" => null,
@@ -235,9 +233,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "leadsource" => 'Chatbot - ' . $sessionData[$phone_number]['flowtitle'] ?? 'Chatbot Inquiry',
                 "remarks" => $remarks,
                 "arrivaldate" => null,
-                "stageid" => 1,
+                "stageid" => 272,
                 "tagid" => 192,
-                "agencyid" => 1,
+                "agencyid" => 94,
                 "agencyname" => null,
                 "isclient" => false,
                 "isrejected" => false,
@@ -252,18 +250,12 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "notificationMessage" => null,
                 "googleMapLink" => null,
                 "isGenerateLead" => null,
-                "remarkUpdateDate" => null
+                "remarkUpdateDate" => null,
+                "isinternational" =>$ininternational
             ]
         ];
     } elseif ($sessionData[$phone_number]['flow'] === 'exportImport_inqiry') {
-        $remarks = "
-    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
-    Company Name: {$sessionData[$phone_number]['companyname']} ,
-    Target Country: {$sessionData[$phone_number]['countryname']} , 
-    Email: {$sessionData[$phone_number]['email']} , 
-    Associated Brand: {$sessionData[$phone_number]['brandname']}
-";
-
+        $remarks = "Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,Company Name: {$sessionData[$phone_number]['companyname']} ,Target Country: {$sessionData[$phone_number]['countryname']} ,Email: {$sessionData[$phone_number]['email']} ,Associated Brand: {$sessionData[$phone_number]['brandname']}";
        writeLog('------------------------------------------------------------------------------------------------');
         writeLog($remarks);
         writeLog('------------------------------------------------------------------------------------------------');
@@ -278,9 +270,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
-                "country" =>  $sessionData[$phone_number]['countryname'] ?? null,
-                "state" => null,
-                "city" => null,
+                "country" =>  !empty($country) ? $country : (!empty($sessionData[$phone_number]['pincode']) ? "India" : null),
+                "city"    => !empty($sessionData[$phone_number]['pincode']) ? $sessionData[$phone_number]['city'] : null,
+                "state"   => !empty($sessionData[$phone_number]['pincode']) ? $sessionData[$phone_number]['state'] : null,
                 "address" => null,
                 "managername" => $sessionData[$phone_number]['name'] ?? null,
                 "manageremail" => null,
@@ -292,9 +284,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "leadsource" => 'Chatbot - ' . $sessionData[$phone_number]['flowtitle'] ?? 'Chatbot Inquiry',
                 "remarks" => $remarks,
                 "arrivaldate" => null,
-                "stageid" => 1,
+                "stageid" => 272,
                 "tagid" => 193,
-                "agencyid" => 1,
+                "agencyid" => 94,
                 "agencyname" => null,
                 "isclient" => false,
                 "isrejected" => false,
@@ -309,15 +301,13 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "notificationMessage" => null,
                 "googleMapLink" => null,
                 "isGenerateLead" => null,
-                "remarkUpdateDate" => null
+                "remarkUpdateDate" => null,
+                "isinternational" =>$ininternational
             ]
         ];
     } elseif ($sessionData[$phone_number]['flow'] === 'request_call_back') {
-        $remarks = "
-    Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,
-    User Name: {$sessionData[$phone_number]['name']} ,
-    Mobile Number:  '+'.{$sessionData[$phone_number]['phonenumber']}
-";       writeLog('------------------------------------------------------------------------------------------------');
+        $remarks = "Inquiry Type: {$sessionData[$phone_number]['flowtitle']} ,User Name: {$sessionData[$phone_number]['name']} ,Mobile Number:  '+'.{$sessionData[$phone_number]['phonenumber']}";       
+        writeLog('------------------------------------------------------------------------------------------------');
         writeLog($remarks);
         writeLog('------------------------------------------------------------------------------------------------');
         writeLog('------------------------------------------------------------------------------------------------');
@@ -331,7 +321,7 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "contactno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "whatsappno" => '+' . $sessionData[$phone_number]['phonenumber'] ?? '+' . $phone_number,
                 "website" => null,
-                "country" =>  null,
+                "country" =>  !empty($country) ? $country : (!empty($sessionData[$phone_number]['pincode']) ? "India" : null),
                 "state" => null,
                 "city" => null,
                 "address" => null,
@@ -345,9 +335,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "leadsource" => 'Chatbot - ' . $sessionData[$phone_number]['flowtitle'] ?? 'Chatbot Inquiry',
                 "remarks" => $remarks,
                 "arrivaldate" => null,
-                "stageid" => 1,
+                "stageid" => 272,
                 "tagid" => 194,
-                "agencyid" => 1,
+                "agencyid" => 94,
                 "agencyname" => null,
                 "isclient" => false,
                 "isrejected" => false,
@@ -362,7 +352,8 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
                 "notificationMessage" => null,
                 "googleMapLink" => null,
                 "isGenerateLead" => null,
-                "remarkUpdateDate" => null
+                "remarkUpdateDate" => null,
+                "isinternational" =>$ininternational
             ]
         ];
     }
@@ -372,9 +363,9 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
         writeLog('------------------------------------------------------------------------------------------------');
         writeLog($data);
         writeLog('------------------------------------------------------------------------------------------------');
-
+        
         $payload = json_encode($data);
-
+ 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -382,11 +373,11 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json'
         ]);
-
+ 
         $response = curl_exec($ch);
         // $response = false;
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+ 
         if ($response === false) {
             $error = curl_error($ch);
             writeLog("cURL error while posting to Ventas: $error");
@@ -396,7 +387,7 @@ function postDataToVentas($accessToken, $phone_number, $sessionData, $version, $
             writeLog('-----------------------------------------------');
             writeLog($response);
         }
-
+ 
         curl_close($ch);
     } else {
         writeLog("No data prepared for Ventas API; flow was not 'product_inquiry'.");
