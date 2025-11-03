@@ -1,5 +1,3 @@
-
-text/x-generic whatsappApi.php ( PHP script, UTF-8 Unicode text, with CRLF line terminators )
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
